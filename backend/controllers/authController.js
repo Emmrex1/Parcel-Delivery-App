@@ -27,7 +27,7 @@ export const login = async (req, res, next) => {
     }
 
     // Check if password is correct
-    const isMatch = await user.matchPassword(password);
+    const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -73,13 +73,15 @@ export const addUser = async (req, res, next) => {
     const user = await User.create({ name, email, password,});
     
     res.status(201).json({
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    });
+  success: true,
+  message: "User created successfully",
+  user: {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  },
+});
 
   } catch (error) {
     next(error);
