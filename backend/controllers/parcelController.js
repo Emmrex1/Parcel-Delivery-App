@@ -84,7 +84,7 @@ export const getParcelByTrackingNumber = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: "Parcel retrieved successfully",
-      parcel,
+      parcel
     });
   } catch (error) {
     next(error);
