@@ -9,7 +9,8 @@ import swaggerUI from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger.js";
 import { globalLimiter } from "./middleware/ratelimiter.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorhandler.js";
- import authRoutes from "./routes/authRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import parcelRoutes from "./routes/parcelRoute.js";
 
 dotenv.config();
 
@@ -35,10 +36,10 @@ app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 app.get("/health", (req, res) => {
     res.status(200).json({ status: "success", message: " Server is healthy" });
 });
- app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/parcels", parcelRoutes);
 
- 
-app.use(notFoundHandler);   
+app.use(notFoundHandler);
 app.use(errorHandler);
 
 

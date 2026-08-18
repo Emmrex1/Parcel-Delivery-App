@@ -24,6 +24,7 @@ const emmAdmin = async () => {
         name,
         email,
         password,
+        
       });
 
       await admin.save();
