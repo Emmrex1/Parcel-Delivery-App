@@ -1,7 +1,7 @@
 import Parcel from "../model/Parcel.js";
 import { calculateCost } from "../services/calculateCost.js";
 import { generateTrackingId } from "../services/generateTrackId.js";
-import { createParcelSchema } from "../validations/validation.js";
+import { addCheckpointSchema, createParcelSchema } from "../validations/validation.js";
 
 // Create a new parcel
 export const createParcel = async (req, res, next) => {
@@ -85,6 +85,92 @@ export const getParcelByTrackingNumber = async (req, res, next) => {
       success: true,
       message: "Parcel retrieved successfully",
       parcel
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+export const addCheckpoint = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const { error, value } = addCheckpointSchema.validate(req.body);
+
+    if (error) {
+      return res.status(400).json({
+        message: error.details[0].message,
+      });
+    }
+
+    const parcel = await Parcel.findById(id);
+
+    if (!parcel) {
+      return res.status(404).json({
+        message: "Parcel not found",
+      });
+    }
+
+    const checkpoint = {
+      ...value,
+      updatedBy: req.user ? req.user._id : null,
+      timestamps: new Date(),
+    };
+
+    parcel.checkpoints.push(checkpoint);
+
+    parcel.status = value.status;
+
+    await parcel.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Checkpoint added successfully",
+      parcel,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllParcels = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+
+    const status = req.query.status;
+    const search = req.query.search;
+
+    const query = {};
+
+    if (status) {
+      query.status = status;
+    }
+
+    if (search) {
+      query.trackingNumber = {
+        $regex: search,
+        $options: "i",
+      };
+    }
+
+    const skip = (page - 1) * limit;
+
+    const [parcels, total] = await Promise.all([
+      Parcel.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+
+      Parcel.countDocuments(query),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: parcels,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
     next(error);

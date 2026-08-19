@@ -21,12 +21,7 @@ const checkpointSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: [
-        "arrived",
-        "in_transit",
-        "out_for_delivery",
-        "delivered",
-      ],
+      enum: [ "arrived", "in_transit", "out_for_delivery", "delivered",],
       required: true,
     },
 
@@ -134,6 +129,13 @@ const parcelSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 0,
+    },
+
+    status: {
+      type: String,
+      enum: ["arrived", "in_transit", "out_for_delivery", "delivered"],
+      default: "arrived",
+      required: true,
     },
 
     checkpoints: [checkpointSchema],
