@@ -1,5 +1,5 @@
 import express from "express";
-import { addCheckpoint, createParcel, getParcelByTrackingNumber } from "../controllers/parcelController.js";
+import { addCheckpoint, createParcel, getAllParcels, getParcelByTrackingNumber } from "../controllers/parcelController.js";
 import { authLimiter } from "../middleware/ratelimiter.js";
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
 
@@ -388,53 +388,61 @@ router.get("/tracking/:trackingNumber",protect,adminOnly, getParcelByTrackingNum
  *         description: Internal server error
  */
 router.post("/:id/checkpoint", protect, adminOnly, addCheckpoint);
-
 /**
  * @swagger
  * /api/parcels:
  *   get:
- *     summary: Get all parcels
+ *     summary: Get all parcels (admin only)
  *     description: Retrieve all parcels with pagination, status filtering, and tracking number search.
  *     tags:
  *       - Parcels
+ *     security:
+ *       - bearerAuth: []
+ *
  *     parameters:
  *       - in: query
  *         name: page
  *         required: false
+ *         description: Page number
  *         schema:
  *           type: integer
- *           default: 1
  *           minimum: 1
- *         description: Page number
+ *           default: 1
  *
  *       - in: query
  *         name: limit
  *         required: false
+ *         description: Number of parcels to return per page
  *         schema:
  *           type: integer
- *           default: 10
  *           minimum: 1
- *         description: Number of parcels to return per page
+ *           maximum: 100
+ *           default: 10
  *
  *       - in: query
  *         name: status
  *         required: false
+ *         description: Filter parcels by their current status
  *         schema:
  *           type: string
- *           example: In Transit
- *         description: Filter parcels by status
+ *           enum:
+ *             - arrived
+ *             - in_transit
+ *             - out_for_delivery
+ *             - delivered
+ *           example: in_transit
  *
  *       - in: query
  *         name: search
  *         required: false
+ *         description: Search parcels by tracking number
  *         schema:
  *           type: string
  *           example: TRK123456
- *         description: Search parcels by tracking number
  *
  *     responses:
  *       200:
- *         description: Parcels retrieved successfully
+ *         description: List of parcels with pagination and optional filters retrieved successfully
  *         content:
  *           application/json:
  *             schema:
@@ -443,33 +451,53 @@ router.post("/:id/checkpoint", protect, adminOnly, addCheckpoint);
  *                 success:
  *                   type: boolean
  *                   example: true
+ *
+ *                 message:
+ *                   type: string
+ *                   example: Parcels retrieved successfully
+ *
  *                 data:
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Parcel'
- *                 total:
- *                   type: integer
- *                   example: 25
- *                 page:
- *                   type: integer
- *                   example: 1
- *                 limit:
- *                   type: integer
- *                   example: 10
- *                 totalPages:
- *                   type: integer
- *                   example: 3
  *
- *       400:
- *         description: Invalid query parameters
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                       example: 25
+ *
+ *                     page:
+ *                       type: integer
+ *                       example: 1
+ *
+ *                     limit:
+ *                       type: integer
+ *                       example: 10
+ *
+ *                     totalPages:
+ *                       type: integer
+ *                       example: 3
+ *
+ *                     hasNextPage:
+ *                       type: boolean
+ *                       example: true
+ *
+ *                     hasPreviousPage:
+ *                       type: boolean
+ *                       example: false
+ *
+ *       401:
+ *         description: Not authorized, no token or invalid token
+ *
+ *       403:
+ *         description: Forbidden, user is not an admin
  *
  *       500:
  *         description: Internal server error
  */
-
-
-
-
+router.get("/", protect, adminOnly, getAllParcels);
 
 export default router;
  

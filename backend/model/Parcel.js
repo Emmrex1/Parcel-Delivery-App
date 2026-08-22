@@ -1,3 +1,4 @@
+
 import mongoose from "mongoose";
 
 const checkpointSchema = new mongoose.Schema(
@@ -21,7 +22,12 @@ const checkpointSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: [ "arrived", "in_transit", "out_for_delivery", "delivered",],
+      enum: [
+        "arrived",
+        "in_transit",
+        "out_for_delivery",
+        "delivered",
+      ],
       required: true,
     },
 
@@ -48,6 +54,7 @@ const parcelSchema = new mongoose.Schema(
       required: true,
       unique: true,
       index: true,
+      trim: true,
     },
 
     senderName: {
@@ -113,7 +120,16 @@ const parcelSchema = new mongoose.Schema(
     parcelCategory: {
       type: String,
       enum: [
-        "document", "electronics", "clothing","fragile","food","cosmetics","medicine","books","small_package","large_package",
+        "document",
+        "electronics",
+        "clothing",
+        "fragile",
+        "food",
+        "cosmetics",
+        "medicine",
+        "books",
+        "small_package",
+        "large_package",
       ],
       required: true,
       trim: true,
@@ -133,7 +149,12 @@ const parcelSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["arrived", "in_transit", "out_for_delivery", "delivered"],
+      enum: [
+        "arrived",
+        "in_transit",
+        "out_for_delivery",
+        "delivered",
+      ],
       default: "arrived",
       required: true,
     },
@@ -144,7 +165,6 @@ const parcelSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
 
 const Parcel = mongoose.model("Parcel", parcelSchema);
 

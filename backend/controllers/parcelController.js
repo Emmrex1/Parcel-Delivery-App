@@ -133,46 +133,85 @@ export const addCheckpoint = async (req, res, next) => {
 };
 
 export const getAllParcels = async (req, res, next) => {
-  try {
+  try{
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
 
     const status = req.query.status;
     const search = req.query.search;
 
-    const query = {};
+    const matchStage = {};
 
     if (status) {
-      query.status = status;
+       matchStage["lastCheckpoint.status"] = status;
     }
 
     if (search) {
-      query.trackingNumber = {
-        $regex: search,
-        $options: "i",
-      };
+      matchStage.trackingNumber = { $regex: search, $options: "i"}
     }
+     
+    const skip = (page-1) * limit;
+    const [parcels,total] = await Promise.all([
+      Parcel.aggregate([
+             {
+              $addFields: {
+                lastCheckpoint:{$arrayElemAt: ["$checkpoints",-1]}
+              }
+             },
 
-    const skip = (page - 1) * limit;
+             {
+              $match: matchStage,
+             },
 
-    const [parcels, total] = await Promise.all([
-      Parcel.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit),
+             {
+              $sort: {createdAt: -1}
+             },
+             {
+              $skip: skip,
+             },
+             {
+              $limit: limit,
+             }
+      ]),
+      Parcel.aggregate([
+          {
+              $addFields: {
+                lastCheckpoint:{$arrayElemAt: ["$checkpoints",-1]}
+              }
+             },
+              {
+              $match: matchStage,
+             },
+             {
+              $count: "total",
+             },
+      ])
+    ])
+    const totalCount = total.length > 0 ? total[0].total : 0
+   res.status(200).json({
+    data: parcels,
+    page,
+    limit,
+    total:totalCount,
+    totalPages: Math.ceil(total / limit),
+   })
+   } catch (error) {
+     next(error);
+   }
+ };
 
-      Parcel.countDocuments(query),
-    ]);
-
-    res.status(200).json({
-      success: true,
-      data: parcels,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+ export const calculateCostCalculator = async (req, res, next) => {
+     try {
+        const {error,value} = CalculateCostSchema.validate(req.body)
+        if(error){
+          return res.status(400).json({
+            success:false,
+            message:error.details[0].message
+          })
+        }
+        const cost = calculateCost(value);
+        res.status(200).json(priceInfo);
+     } catch (error) {
+        next(error);
+     }
+ };

@@ -32,3 +32,7 @@ export const addCheckpointSchema =  joi.object ({
   description: joi.string().allow("",null),
   status: joi.string().valid("arrived", "in_transit", "out_for_delivery", "delivered").required()
 })
+
+// export const CalculateCostSchema = joi.object({
+//   originCity: joi.string().min(2).max(100).required(),
+//   destinationCity: joi.string().min(2).max(100).required(),
