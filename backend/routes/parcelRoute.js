@@ -1,16 +1,16 @@
 import express from "express";
-import { addCheckpoint, createParcel, getAllParcels, getParcelByTrackingNumber } from "../controllers/parcelController.js";
+import { addCheckpoint, calculateCostCalculator, createParcel, getAllParcels, getParcelByTrackingNumber } from "../controllers/parcelController.js";
 import { authLimiter } from "../middleware/ratelimiter.js";
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-/**
- * @swagger
- * tags:
- *   - name: Parcel
- *     description: Parcel management and tracking
-    */
+// /**
+//  * @swagger
+//  * tags:
+//  *   - name: Parcel
+//  *     description: Parcel management and tracking
+//     */
 
 /**
  * @swagger
@@ -499,5 +499,118 @@ router.post("/:id/checkpoint", protect, adminOnly, addCheckpoint);
  */
 router.get("/", protect, adminOnly, getAllParcels);
 
+/**
+ * @swagger
+ * /api/parcels/calculate-cost:
+ *   post:
+ *     summary: Calculate parcel delivery cost
+ *     description: Calculate the delivery cost based on shipment details.
+ *     tags:
+ *       - Parcels
+ *
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - originCity
+ *               - destinationCity
+ *               - shipmentType
+ *               - deliveryType
+ *               - parcelCategory
+ *               - weight
+ *             properties:
+ *               originCity:
+ *                 type: string
+ *                 example: Lagos
+ *
+ *               destinationCity:
+ *                 type: string
+ *                 example: Abuja
+ *
+ *               shipmentType:
+ *                 type: string
+ *                 enum:
+ *                   - national
+ *                   - international
+ *                 example: national
+ *
+ *               deliveryType:
+ *                 type: string
+ *                 enum:
+ *                   - sameday
+ *                   - overnight
+ *                   - standard
+ *                 example: overnight
+ *
+ *               parcelCategory:
+ *                 type: string
+ *                 enum:
+ *                   - document
+ *                   - electronics
+ *                   - clothing
+ *                   - fragile
+ *                   - food
+ *                   - cosmetics
+ *                   - medicine
+ *                   - books
+ *                   - small_package
+ *                   - large_package
+ *                 example: electronics
+ *
+ *               weight:
+ *                 type: number
+ *                 format: float
+ *                 minimum: 0
+ *                 example: 3.5
+ *
+ *     responses:
+ *       200:
+ *         description: Delivery cost calculated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Delivery cost calculated successfully
+ *                 cost:
+ *                   type: object
+ *                   properties:
+ *                     type:
+ *                       type: string
+ *                       example: national
+ *                     parcelCategory:
+ *                       type: string
+ *                       example: electronics
+ *                     price:
+ *                       type: number
+ *                       example: 2880
+ *
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: '"originCity" is required'
+ *
+ *       500:
+ *         description: Internal server error
+ */
+
+router.post("/calculate-cost", calculateCostCalculator);
 export default router;
  

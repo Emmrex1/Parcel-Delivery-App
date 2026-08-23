@@ -1,7 +1,7 @@
 import Parcel from "../model/Parcel.js";
 import { calculateCost } from "../services/calculateCost.js";
 import { generateTrackingId } from "../services/generateTrackId.js";
-import { addCheckpointSchema, createParcelSchema } from "../validations/validation.js";
+import { addCheckpointSchema, CalculateCostSchema, createParcelSchema } from "../validations/validation.js";
 
 // Create a new parcel
 export const createParcel = async (req, res, next) => {
@@ -193,7 +193,7 @@ export const getAllParcels = async (req, res, next) => {
     page,
     limit,
     total:totalCount,
-    totalPages: Math.ceil(total / limit),
+    totalPages: Math.ceil(totalCount / limit),
    })
    } catch (error) {
      next(error);
@@ -201,17 +201,24 @@ export const getAllParcels = async (req, res, next) => {
  };
 
  export const calculateCostCalculator = async (req, res, next) => {
-     try {
-        const {error,value} = CalculateCostSchema.validate(req.body)
-        if(error){
-          return res.status(400).json({
-            success:false,
-            message:error.details[0].message
-          })
-        }
-        const cost = calculateCost(value);
-        res.status(200).json(priceInfo);
-     } catch (error) {
-        next(error);
-     }
- };
+  try {
+    const { error, value } = CalculateCostSchema.validate(req.body);
+
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.details[0].message,
+      });
+    }
+
+    const cost = calculateCost(value);
+
+    return res.status(200).json({
+      success: true,
+      message: "Delivery cost calculated successfully",
+      cost,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
