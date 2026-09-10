@@ -11,6 +11,9 @@ import { globalLimiter } from "./middleware/ratelimiter.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorhandler.js";
 import authRoutes from "./routes/authRoutes.js";
 import parcelRoutes from "./routes/parcelRoute.js";
+import dashBoardRoutes from "./routes/dashBoardRoutes.js";
+import analyticsRoutes from "./routes/analyticsRoute.js";
+
 
 dotenv.config();
 
@@ -38,6 +41,8 @@ app.get("/health", (req, res) => {
 });
 app.use("/api/auth", authRoutes);
 app.use("/api/parcels", parcelRoutes);
+app.use("/api/dashboard", dashBoardRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
