@@ -52,7 +52,7 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <span className="text-lg font-bold text-sidebar-foreground tracking-tight">
-              SwiftPak
+              RapidXpress
             </span>
           )}
         </div>

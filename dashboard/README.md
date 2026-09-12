@@ -1,4 +1,4 @@
-# SwiftShip Dashboard
+# RapidXpress Dashboard
 
 React dashboard built with Vite and Tailwind CSS.
 
