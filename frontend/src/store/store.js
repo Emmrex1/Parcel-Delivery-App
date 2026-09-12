@@ -1,5 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
-import parcelReducer from "@/features/parcels/parcelSlice";
+import parcelReducer from "./slice/parcelSlice";
 
 export const store = configureStore({
   reducer: {

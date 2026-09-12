@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Calculator } from "lucide-react";
+import { Calculator, Package } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { calculateCostThunk } from "@/features/parcels/parcelSlice";
+import { calculateCostThunk } from "../store/slice/parcelSlice";
+
 import {
   getDestinationOptionsForShipmentType,
   isValidDestinationForShipmentType,
@@ -240,7 +241,7 @@ const CalculateCostPage = () => {
                         </SelectTrigger>
 
                         <SelectContent>
-                          <SelectItem value="sameDay">Same Day</SelectItem>
+                          <SelectItem value="sameday">Same Day</SelectItem>
                           <SelectItem value="overnight">Overnight</SelectItem>
                           <SelectItem value="standard">Standard</SelectItem>
                         </SelectContent>
@@ -259,52 +260,65 @@ const CalculateCostPage = () => {
               </Card>
             </motion.div>
 
-            <motion.div
+            {/* <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-            >
-              {result ? (
-                <Card className="border-border/50 shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="fonde">Cost Estimate</CardTitle>
+            > */}
+            {result && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="max-w-lg mx-auto mt-10"
+              >
+                <Card className="overflow-hidden border-primary/20 shadow-lg">
+                  <CardHeader className="bg-primary text-primary-foreground">
+                    <CardTitle className="flex items-center gap-2">
+                      <Package className="h-5 w-5" />
+                      Delivery Cost Estimate
+                    </CardTitle>
                   </CardHeader>
 
-                  <CardContent className="space-y-4">
-                    <div className="flex justify-between py-2 border-b border-border/50">
-                      <span className="text-muted-foreground">Type</span>
-                      <span className="font-medium text-foreground capitalize">
-                        {result.type?.replace(/_/g, " ") || "-"}
-                      </span>
-                    </div>
+                  <CardContent className="p-6">
+                    <div className="space-y-5">
+                      <div className="flex items-center justify-between border-b pb-4">
+                        <span className="text-sm text-muted-foreground">
+                          Shipment Type
+                        </span>
 
-                    <div className="flex justify-between py-2 border-b border-border/50">
-                      <span className="text-muted-foreground">Category</span>
-                      <span className="font-medium text-foreground capitalize">
-                        {result.parcelCategory?.replace(/_/g, " ") || "-"}
-                      </span>
-                    </div>
+                        <span className="font-semibold capitalize">
+                          {result.type || "N/A"}
+                        </span>
+                      </div>
 
-                    <div className="flex justify-between py-2 border-b border-border/50">
-                      <span className="text-muted-foreground">Total Cost</span>
-                      <span className="font-medium text-foreground capitalize">
-                        Rs. {result.price?.toLocaleString?.() ?? 0}
-                      </span>
+                      <div className="flex items-center justify-between border-b pb-4">
+                        <span className="text-sm text-muted-foreground">
+                          Parcel Category
+                        </span>
+
+                        <span className="font-semibold capitalize">
+                          {result.parcelCategory || "N/A"}
+                        </span>
+                      </div>
+
+                      <div className="rounded-xl bg-primary/5 p-5 text-center">
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Estimated Delivery Cost
+                        </p>
+
+                        <h2 className="text-4xl font-bold text-primary">
+                          ₦{Number(result.price || 0).toLocaleString()}
+                        </h2>
+                      </div>
+
+                      <p className="text-xs text-center text-muted-foreground">
+                        Final pricing may vary based on delivery requirements.
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center text-muted-foreground">
-                    <Calculator className="h-16 w-16 mx-auto mb-4 opacity-20" />
-                    <p>
-                      Fill in the details and click calculate to see your
-                      shipping cost
-                    </p>
-                  </div>
-                </div>
-              )}
-            </motion.div>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>

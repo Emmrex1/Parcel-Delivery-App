@@ -18,7 +18,7 @@ const toOption = (value) => ({ value, label: value });
 export const NIGERIAN_CITY_OPTIONS = NIGERIAN_CITIES.map(toOption);
 
 export const INTERNATIONAL_COUNTRIES_WITH_CAPITALS = [
-  { country: "Afghanistan", capital: "Kabul" },
+  { country: "Afghani", capital: "Kabul" },
   { country: "Bahrain", capital: "Manama" },
   { country: "Bangladesh", capital: "Dhaka" },
   { country: "Canada", capital: "Ottawa" },
