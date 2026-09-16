@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: {
+    timestamp: {
       createdAt: true,
       updatedAt: false,
     },

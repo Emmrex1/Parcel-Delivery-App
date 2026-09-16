@@ -1,5 +1,5 @@
 import express from "express";
-import { addCheckpoint, calculateCostCalculator, createParcel, getAllParcels, getParcelByTrackingNumber } from "../controllers/parcelController.js";
+import { addCheckpoint, calculateCostCalculator, createParcel, getAllParcels, getParcelByTrackingNumber, getParcelById, } from "../controllers/parcelController.js";
 import { authLimiter } from "../middleware/ratelimiter.js";
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
 
@@ -265,7 +265,7 @@ router.post("/", protect, adminOnly, createParcel);
  *                               - delivered
  *                             example: arrived
  *
- *                           timestamps:
+ *                           timestamp:
  *                             type: string
  *                             format: date-time
  *                             example: 2026-08-18T10:30:00.000Z
@@ -301,6 +301,9 @@ router.post("/", protect, adminOnly, createParcel);
  *         description: Internal server error
  */
 router.get("/tracking/:trackingNumber",protect,adminOnly, getParcelByTrackingNumber);
+
+
+router.get("/:id", protect, adminOnly, getParcelById);
 
 /**
  * @swagger
@@ -612,5 +615,8 @@ router.get("/", protect, adminOnly, getAllParcels);
  */
 
 router.post("/calculate-cost", calculateCostCalculator);
+
+
+
 export default router;
  

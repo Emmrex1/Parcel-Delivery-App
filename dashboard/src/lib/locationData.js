@@ -1,24 +1,44 @@
-export const PAKISTANI_CITIES = [
-  "Karachi",
-  "Lahore",
-  "Islamabad",
-  "Rawalpindi",
-  "Faisalabad",
-  "Multan",
-  "Peshawar",
-  "Quetta",
-  "Sialkot",
-  "Gujranwala",
-  "Hyderabad",
-  "Abbottabad",
-  "Bahawalpur",
-  "Sukkur",
-  "Mardan",
+export const NIGERIAN_CITIES = [
+  "Lagos",
+  "Abuja",
+  "Kano",
+  "Ibadan",
+  "Port Harcourt",
+  "Benin City",
+  "Enugu",
+  "Nsukka",
+  "Onitsha",
+  "Akure",
+  "Ilorin",
+  "Zaria",
+  "Maiduguri",
+  "Jos",
+  "Calabar",
+  "Sokoto",
+  "Abeokuta",
+  "Warri",
+  "Uyo",
+  "Bauchi",
+  "Gombe",
+  "Yola",
+  "Makurdi",
+  "Jalingo",
+  "Damaturu",
+  "Bida",
+  "Katsina",
+  "Minna",
+  "Lokoja",
+  "Ado-Ekiti",
+  "Ife",
+  "Ilesa",
+  "Oshogbo",
+  "Oyo",
+  "Iwo",
 ];
 
 const toOption = (value) => ({ value, label: value });
 
-export const PAKISTANI_CITY_OPTIONS = PAKISTANI_CITIES.map(toOption);
+export const NIGERIAN_CITY_OPTIONS = NIGERIAN_CITIES.map(toOption);
 
 export const INTERNATIONAL_COUNTRIES_WITH_CAPITALS = [
   { country: "Afghanistan", capital: "Kabul" },
@@ -52,7 +72,7 @@ export const INTERNATIONAL_DESTINATION_OPTIONS =
 export const getDestinationOptionsForShipmentType = (shipmentType) =>
   shipmentType === "international"
     ? INTERNATIONAL_DESTINATION_OPTIONS
-    : PAKISTANI_CITY_OPTIONS;
+    : NIGERIAN_CITY_OPTIONS;
 
 export const isValidDestinationForShipmentType = (shipmentType, destination) =>
   !destination ||

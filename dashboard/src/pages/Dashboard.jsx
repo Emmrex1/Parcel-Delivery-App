@@ -233,7 +233,7 @@ export default function Dashboard() {
             <Card className="border-0 shadow-md">
               <CardHeader>
                 <CardTitle className="text-base">
-                  Revenue Per Month (PKR)
+                  Revenue Per Month (NGN)
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -260,7 +260,7 @@ export default function Dashboard() {
                       />
 
                       <Tooltip
-                        formatter={(v) => `PKR ${Number(v).toLocaleString()}`}
+                        formatter={(v) => `NGN ${Number(v).toLocaleString()}`}
                         contentStyle={{
                           borderRadius: "8px",
                           border: "none",
@@ -346,7 +346,7 @@ export default function Dashboard() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Tracking ID</TableHead>
+                  <TableHead>Tracking Number</TableHead>
                   <TableHead className="hidden md:table-cell">Sender</TableHead>
                   <TableHead className="hidden md:table-cell">
                     Receiver
@@ -364,7 +364,7 @@ export default function Dashboard() {
               <TableBody>
                 {(items || []).map((p) => (
                   <TableRow>
-                    <TableCell>{p.trackingId}</TableCell>
+                    <TableCell>{p.trackingNumber}</TableCell>
                     <TableCell className="hidden md:table-cell">
                       {p.senderName}
                     </TableCell>

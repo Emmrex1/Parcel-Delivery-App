@@ -162,7 +162,7 @@ const parcelSchema = new mongoose.Schema(
     checkpoints: [checkpointSchema],
   },
   {
-    timestamps: true,
+    timestamp: true,
   }
 );
 

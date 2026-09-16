@@ -302,25 +302,20 @@ export const getDeliveryPerformance = async (
   }
 };
 
+
 // GET ANALYTICS SUMMARY
-export const getAnalyticsSummary = async (
-  req,
-  res,
-  next
-) => {
+export const getAnalyticsSummary = async (req, res, next) => {
   try {
     const data = await getDashboardStatsData();
 
-    const cities = await Parcel.distinct(
-      "destinationCity",
-      {
-        destinationCity: {
-          $type: "string",
-          $ne: "",
-        },
-      }
-    );
+    const cities = await Parcel.distinct("destinationCity", {
+      destinationCity: {
+        $type: "string",
+        $ne: "",
+      },
+    });
 
+  
     const citiesServed = cities.filter(
       (city) =>
         typeof city === "string" &&
@@ -329,16 +324,12 @@ export const getAnalyticsSummary = async (
 
     return res.status(200).json({
       success: true,
-
-      totals: data.totals,
-
-      statusDistribution:
-        data.statusDistribution,
-
-      weightDistribution:
-        data.weightDistribution,
-
-      citiesServed,
+      data: {
+        totals: data.totals,
+        statusDistribution: data.statusDistribution,
+        weightDistribution: data.weightDistribution,
+        citiesServed,
+      },
     });
   } catch (error) {
     next(error);

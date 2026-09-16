@@ -16,7 +16,7 @@ const router = express.Router();
  * @swagger
  * /api/auth/login:
  *   post:
- *     summary: admin login
+ *     summary: Admin login
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -46,10 +46,12 @@ router.post("/login", authLimiter, login);
 
 /**
  * @swagger
- * /api/auth/adduser:
+ * /api/auth/add-user:
  *   post:
- *     summary: Add a new user (admin only)
+ *     summary: Add a new admin user
  *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -79,7 +81,6 @@ router.post("/login", authLimiter, login);
  *       403:
  *         description: Forbidden, user is not an admin
  */
-router.post("/adduser",  protect, adminOnly, addUser);
-
+router.post("/add-user", protect, adminOnly, addUser);
 
 export default router;

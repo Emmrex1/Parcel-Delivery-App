@@ -109,12 +109,13 @@ export const addCheckpoint = async (req, res, next) => {
         message: "Parcel not found",
       });
     }
+    
 
     const checkpoint = {
-      ...value,
-      updatedBy: req.user ? req.user._id : null,
-      timestamps: new Date(),
-    };
+  ...value,
+  updatedBy: req.user ? req.user._id : null,
+  timestamp: new Date(),
+};
 
     parcel.checkpoints.push(checkpoint);
 
@@ -133,73 +134,88 @@ export const addCheckpoint = async (req, res, next) => {
 };
 
 export const getAllParcels = async (req, res, next) => {
-  try{
+  try {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
 
     const status = req.query.status;
     const search = req.query.search;
+    const shipmentType = req.query.shipmentType;
 
     const matchStage = {};
 
     if (status) {
-       matchStage["lastCheckpoint.status"] = status;
+      matchStage["lastCheckpoint.status"] = status;
     }
 
     if (search) {
-      matchStage.trackingNumber = { $regex: search, $options: "i"}
+      matchStage.trackingNumber = {
+        $regex: search,
+        $options: "i",
+      };
     }
-     
-    const skip = (page-1) * limit;
-    const [parcels,total] = await Promise.all([
+
+    if (shipmentType) {
+      matchStage.shipmentType = shipmentType;
+    }
+
+    const skip = (page - 1) * limit;
+
+    const [parcels, total] = await Promise.all([
       Parcel.aggregate([
-             {
-              $addFields: {
-                lastCheckpoint:{$arrayElemAt: ["$checkpoints",-1]}
-              }
-             },
-
-             {
-              $match: matchStage,
-             },
-
-             {
-              $sort: {createdAt: -1}
-             },
-             {
-              $skip: skip,
-             },
-             {
-              $limit: limit,
-             }
+        {
+          $addFields: {
+            lastCheckpoint: {
+              $arrayElemAt: ["$checkpoints", -1],
+            },
+          },
+        },
+        {
+          $match: matchStage,
+        },
+        {
+          $sort: {
+            createdAt: -1,
+          },
+        },
+        {
+          $skip: skip,
+        },
+        {
+          $limit: limit,
+        },
       ]),
-      Parcel.aggregate([
-          {
-              $addFields: {
-                lastCheckpoint:{$arrayElemAt: ["$checkpoints",-1]}
-              }
-             },
-              {
-              $match: matchStage,
-             },
-             {
-              $count: "total",
-             },
-      ])
-    ])
-    const totalCount = total.length > 0 ? total[0].total : 0
-   res.status(200).json({
-    data: parcels,
-    page,
-    limit,
-    total:totalCount,
-    totalPages: Math.ceil(totalCount / limit),
-   })
-   } catch (error) {
-     next(error);
-   }
- };
 
+      Parcel.aggregate([
+        {
+          $addFields: {
+            lastCheckpoint: {
+              $arrayElemAt: ["$checkpoints", -1],
+            },
+          },
+        },
+        {
+          $match: matchStage,
+        },
+        {
+          $count: "total",
+        },
+      ]),
+    ]);
+
+    const totalCount = total.length > 0 ? total[0].total : 0;
+
+    res.status(200).json({
+      data: parcels,
+      page,
+      limit,
+      total: totalCount,
+      totalPages: Math.ceil(totalCount / limit),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
  export const calculateCostCalculator = async (req, res, next) => {
   try {
     const { error, value } = CalculateCostSchema.validate(req.body);
@@ -220,5 +236,34 @@ export const getAllParcels = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+};
+
+export const getParcelById = async (req, res) => {
+  try {
+    const parcel = await Parcel.findById(req.params.id).populate(
+      "checkpoints.updatedBy",
+      "name email",
+    );
+
+    if (!parcel) {
+      return res.status(404).json({
+        success: false,
+        message: "Parcel not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Parcel retrieved successfully",
+      parcel,
+    });
+  } catch (error) {
+    console.error("Get parcel by ID error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve parcel",
+    });
   }
 };
