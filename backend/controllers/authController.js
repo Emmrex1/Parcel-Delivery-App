@@ -55,34 +55,41 @@ export const login = async (req, res, next) => {
 
 export const addUser = async (req, res, next) => {
   try {
-    const {error, value} = addUserSchema.validate(req.body);
+    const { error, value } = addUserSchema.validate(req.body);
 
     if (error) {
-      return res.status(400).json({ message: error.details[0].message });
+      return res.status(400).json({
+        message: error.details[0].message,
+      });
     }
 
     const { name, email, password } = value;
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
+
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({
+        message: "User already exists",
+      });
     }
 
-    // Create new user
-    const user = await User.create({ name, email, password,});
-    
-    res.status(201).json({
-  success: true,
-  message: "User created successfully",
-  user: {
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-  },
-});
+    const user = await User.create({
+      name,
+      email,
+      password,
+      role: "admin",
+    });
 
+    res.status(201).json({
+      success: true,
+      message: "Admin created successfully",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
   } catch (error) {
     next(error);
   }

@@ -16,7 +16,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 
 import TrackingTimeline from "@/components/TrackingTimeline";
-import { trackParcelThunk } from "../store/slice/parcelSlice";
+import { trackParcelThunk } from "../features/slice/parcelSlice";
+
 
 
 const statusColors = {

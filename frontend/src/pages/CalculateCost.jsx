@@ -14,13 +14,14 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { calculateCostThunk } from "../store/slice/parcelSlice";
+
 
 import {
   getDestinationOptionsForShipmentType,
   isValidDestinationForShipmentType,
   NIGERIAN_CITY_OPTIONS,
 } from "@/lib/locationData";
+import { calculateCostThunk } from "../features/slice/parcelSlice";
 
 const categories = [
   { value: "document", label: "Document" },

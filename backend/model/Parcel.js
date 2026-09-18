@@ -1,4 +1,3 @@
-
 import mongoose from "mongoose";
 
 const checkpointSchema = new mongoose.Schema(
@@ -46,9 +45,18 @@ const checkpointSchema = new mongoose.Schema(
   }
 );
 
-
 const parcelSchema = new mongoose.Schema(
   {
+    // PARCEL OWNERSHIP
+    
+    customer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+    // TRACKING
+    
     trackingNumber: {
       type: String,
       required: true,
@@ -56,7 +64,7 @@ const parcelSchema = new mongoose.Schema(
       index: true,
       trim: true,
     },
-
+    // SENDER INFORMATION
     senderName: {
       type: String,
       required: true,
@@ -74,7 +82,8 @@ const parcelSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-
+    // RECEIVER INFORMATION
+    
     receiverName: {
       type: String,
       required: true,
@@ -93,6 +102,7 @@ const parcelSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // SHIPMENT INFORMATION
     shipmentType: {
       type: String,
       enum: ["national", "international"],
@@ -141,12 +151,15 @@ const parcelSchema = new mongoose.Schema(
       min: 0,
     },
 
+    // PAYMENT / PRICE
+   
     price: {
       type: Number,
       required: true,
       min: 0,
     },
-
+   
+    // CURRENT STATUS
     status: {
       type: String,
       enum: [
@@ -159,10 +172,12 @@ const parcelSchema = new mongoose.Schema(
       required: true,
     },
 
+    // TRACKING HISTORY
+    
     checkpoints: [checkpointSchema],
   },
   {
-    timestamp: true,
+    timestamps: true,
   }
 );
 

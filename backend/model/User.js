@@ -25,15 +25,12 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["admin"],
-      default: "admin",
+      enum: ["admin", "customer"],
+      default: "customer",
     },
   },
   {
-    timestamp: {
-      createdAt: true,
-      updatedAt: false,
-    },
+    timestamps: true,
   }
 );
 
@@ -50,7 +47,6 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Create and export the model
 const User = mongoose.model("User", userSchema);
 
 export default User;

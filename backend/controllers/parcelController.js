@@ -1,9 +1,16 @@
 import Parcel from "../model/Parcel.js";
+import User from "../model/User.js";
 import { calculateCost } from "../services/calculateCost.js";
 import { generateTrackingId } from "../services/generateTrackId.js";
-import { addCheckpointSchema, CalculateCostSchema, createParcelSchema } from "../validations/validation.js";
+import {
+  addCheckpointSchema,
+  CalculateCostSchema,
+  createParcelSchema,
+} from "../validations/validation.js";
 
-// Create a new parcel
+
+// CREATE PARCEL
+
 export const createParcel = async (req, res, next) => {
   try {
     // Validate request body
@@ -16,7 +23,50 @@ export const createParcel = async (req, res, next) => {
       });
     }
 
-    // Calculate parcel delivery cost
+    let customerId;
+
+   
+    // CUSTOMER CREATES THEIR OWN PARCEL
+    if (req.user.role === "customer") {
+      customerId = req.user._id;
+    }
+
+
+    // ADMIN CREATES A PARCEL FOR A CUSTOMER
+    if (req.user.role === "admin") {
+      const { customerId: adminCustomerId } = req.body;
+
+      if (!adminCustomerId) {
+        return res.status(400).json({
+          success: false,
+          message: "Please select a customer for this parcel",
+        });
+      }
+
+      const customer = await User.findOne({
+        _id: adminCustomerId,
+        role: "customer",
+      });
+
+      if (!customer) {
+        return res.status(404).json({
+          success: false,
+          message: "Customer not found",
+        });
+      }
+
+      customerId = customer._id;
+    }
+
+    // SAFETY CHECK   
+    if (!customerId) {
+      return res.status(400).json({
+        success: false,
+        message: "Parcel customer could not be determined",
+      });
+    }
+
+    // CALCULATE DELIVERY COST
     const priceInfo = calculateCost({
       originCity: value.originCity,
       destinationCity: value.destinationCity,
@@ -26,7 +76,7 @@ export const createParcel = async (req, res, next) => {
       weight: value.weight,
     });
 
-
+    // GENERATE TRACKING NUMBER
     const trackingNumber = generateTrackingId();
 
     if (!trackingNumber) {
@@ -36,9 +86,11 @@ export const createParcel = async (req, res, next) => {
       });
     }
 
-    // Create parcel in MongoDB
+    // CREATE PARCEL
     const parcel = await Parcel.create({
       ...value,
+
+      customer: customerId,
 
       trackingNumber,
 
@@ -50,12 +102,15 @@ export const createParcel = async (req, res, next) => {
           status: "arrived",
           title: `Parcel arrived at ${value.originCity} Branch`,
           description: `Parcel has been received at ${value.originCity} Branch and is ready for shipment.`,
-          updatedBy: req.user ? req.user._id : null,
+          updatedBy: req.user._id,
         },
       ],
     });
 
-    // Send response
+    // POPULATE CUSTOMER
+   
+    await parcel.populate("customer", "name email");
+
     return res.status(201).json({
       success: true,
       message: "Parcel created successfully",
@@ -66,15 +121,17 @@ export const createParcel = async (req, res, next) => {
   }
 };
 
+// GET PARCEL BY TRACKING NUMBER
 
-// Get parcel by tracking number
 export const getParcelByTrackingNumber = async (req, res, next) => {
   try {
     const parcel = await Parcel.findOne({
       trackingNumber: req.params.trackingNumber,
-    }).populate("checkpoints.updatedBy", "name email");
+    })
+      .populate("customer", "name email")
+      .populate("checkpoints.updatedBy", "name email");
 
-    if (!parcel) { 
+    if (!parcel) {
       return res.status(404).json({
         success: false,
         message: "Parcel not found",
@@ -84,12 +141,95 @@ export const getParcelByTrackingNumber = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: "Parcel retrieved successfully",
-      parcel
+      parcel,
     });
   } catch (error) {
     next(error);
   }
 };
+
+// GET CUSTOMER'S OWN PARCELS
+
+export const getMyParcels = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+
+    const status = req.query.status;
+    const search = req.query.search;
+
+    const skip = (page - 1) * limit;
+
+    const filter = {
+      customer: req.user._id,
+    };
+
+    if (status) {
+      filter.status = status;
+    }
+
+    if (search) {
+      filter.trackingNumber = {
+        $regex: search,
+        $options: "i",
+      };
+    }
+
+    const [parcels, total] = await Promise.all([
+      Parcel.find(filter)
+        .populate("customer", "name email")
+        .populate("checkpoints.updatedBy", "name email")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+
+      Parcel.countDocuments(filter),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: parcels,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+// GET CUSTOMER'S OWN PARCEL BY ID
+
+export const getMyParcelById = async (req, res, next) => {
+  try {
+    const parcel = await Parcel.findOne({
+      _id: req.params.id,
+      customer: req.user._id,
+    })
+      .populate("customer", "name email")
+      .populate("checkpoints.updatedBy", "name email");
+
+    if (!parcel) {
+      return res.status(404).json({
+        success: false,
+        message: "Parcel not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Parcel retrieved successfully",
+      parcel,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Admin only.
+
 export const addCheckpoint = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -109,19 +249,20 @@ export const addCheckpoint = async (req, res, next) => {
         message: "Parcel not found",
       });
     }
-    
 
     const checkpoint = {
-  ...value,
-  updatedBy: req.user ? req.user._id : null,
-  timestamp: new Date(),
-};
+      ...value,
+      updatedBy: req.user._id,
+      timestamp: new Date(),
+    };
 
     parcel.checkpoints.push(checkpoint);
 
     parcel.status = value.status;
 
     await parcel.save();
+
+    await parcel.populate("customer", "name email");
 
     return res.status(201).json({
       success: true,
@@ -133,6 +274,8 @@ export const addCheckpoint = async (req, res, next) => {
   }
 };
 
+
+// Admin only.
 export const getAllParcels = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
@@ -145,7 +288,7 @@ export const getAllParcels = async (req, res, next) => {
     const matchStage = {};
 
     if (status) {
-      matchStage["lastCheckpoint.status"] = status;
+      matchStage.status = status;
     }
 
     if (search) {
@@ -162,61 +305,32 @@ export const getAllParcels = async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     const [parcels, total] = await Promise.all([
-      Parcel.aggregate([
-        {
-          $addFields: {
-            lastCheckpoint: {
-              $arrayElemAt: ["$checkpoints", -1],
-            },
-          },
-        },
-        {
-          $match: matchStage,
-        },
-        {
-          $sort: {
-            createdAt: -1,
-          },
-        },
-        {
-          $skip: skip,
-        },
-        {
-          $limit: limit,
-        },
-      ]),
+      Parcel.find(matchStage)
+        .populate("customer", "name email")
+        .populate("checkpoints.updatedBy", "name email")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
 
-      Parcel.aggregate([
-        {
-          $addFields: {
-            lastCheckpoint: {
-              $arrayElemAt: ["$checkpoints", -1],
-            },
-          },
-        },
-        {
-          $match: matchStage,
-        },
-        {
-          $count: "total",
-        },
-      ]),
+      Parcel.countDocuments(matchStage),
     ]);
 
-    const totalCount = total.length > 0 ? total[0].total : 0;
-
-    res.status(200).json({
+    return res.status(200).json({
+      success: true,
       data: parcels,
       page,
       limit,
-      total: totalCount,
-      totalPages: Math.ceil(totalCount / limit),
+      total,
+      totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
     next(error);
   }
 };
- export const calculateCostCalculator = async (req, res, next) => {
+
+// CALCULATE DELIVERY COST
+
+export const calculateCostCalculator = async (req, res, next) => {
   try {
     const { error, value } = CalculateCostSchema.validate(req.body);
 
@@ -239,12 +353,12 @@ export const getAllParcels = async (req, res, next) => {
   }
 };
 
-export const getParcelById = async (req, res) => {
+// Admin only.
+export const getParcelById = async (req, res, next) => {
   try {
-    const parcel = await Parcel.findById(req.params.id).populate(
-      "checkpoints.updatedBy",
-      "name email",
-    );
+    const parcel = await Parcel.findById(req.params.id)
+      .populate("customer", "name email")
+      .populate("checkpoints.updatedBy", "name email");
 
     if (!parcel) {
       return res.status(404).json({
@@ -253,7 +367,7 @@ export const getParcelById = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Parcel retrieved successfully",
       parcel,
@@ -261,7 +375,7 @@ export const getParcelById = async (req, res) => {
   } catch (error) {
     console.error("Get parcel by ID error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to retrieve parcel",
     });
