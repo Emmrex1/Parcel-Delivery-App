@@ -312,9 +312,8 @@ export const getAnalyticsSummary = async (req, res, next) => {
       destinationCity: {
         $type: "string",
         $ne: "",
-      },
+      }
     });
-
   
     const citiesServed = cities.filter(
       (city) =>

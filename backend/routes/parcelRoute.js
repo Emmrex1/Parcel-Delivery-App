@@ -795,5 +795,11 @@ router.post(
   addCheckpoint
 );
 
+router.post(
+  "/customer",
+  protect,
+  customerOnly,
+  createParcel
+);
 
 export default router;

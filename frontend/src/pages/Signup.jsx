@@ -26,6 +26,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { axiosInstance } from "../services/axiosInstance";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -101,9 +102,7 @@ const Signup = () => {
     return null;
   };
 
-  // =========================
-  // HANDLE SIGNUP
-  // =========================
+ 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -119,63 +118,55 @@ const Signup = () => {
 
     setLoading(true);
 
-    try {
-      const response = await fetch(
-        "http://localhost:5000/api/auth/register",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            name: form.name.trim(),
-            email: form.email.trim(),
-            phone: form.phone.trim(),
-            password: form.password,
-          }),
-        }
-      );
+   try {
+     setLoading(true);
 
-      const data = await response.json();
+     const { data } = await axiosInstance.post("/auth/register", {
+       name: form.name.trim(),
+       email: form.email.trim(),
+       password: form.password,
+     });
 
-      if (!response.ok) {
-        throw new Error(
-          data?.message ||
-            "Unable to create your account. Please try again."
-        );
-      }
+     // Store token returned by registration
+     if (data?.token) {
+       localStorage.setItem("token", data.token);
+     }
 
-      setSuccess(
-        data?.message ||
-          "Account created successfully."
-      );
+     // Store customer information
+     if (data?.user) {
+       localStorage.setItem("user", JSON.stringify(data.user));
+     }
 
-      // Clear form
-      setForm({
-        name: "",
-        email: "",
-        phone: "",
-        password: "",
-        confirmPassword: "",
-      });
+     window.dispatchEvent(new Event("authChange"));
 
-      setAcceptTerms(false);
+     setSuccess(data?.message || "Account created successfully.");
 
-      // Give user a moment to see success message
-      setTimeout(() => {
-        navigate("/login");
-      }, 1500);
-    } catch (err) {
-      console.error("Signup error:", err);
+     // Clear form
+     setForm({
+       name: "",
+       email: "",
+       phone: "",
+       password: "",
+       confirmPassword: "",
+     });
 
-      setError(
-        err?.message ||
-          "Something went wrong while creating your account."
-      );
-    } finally {
-      setLoading(false);
-    }
+     setAcceptTerms(false);
+
+     // Go to customer dashboard
+     setTimeout(() => {
+       navigate("/dashboard");
+     }, 1000);
+   } catch (error) {
+     console.error("Signup error:", error);
+
+     setError(
+       error?.response?.data?.message ||
+         error?.message ||
+         "Something went wrong while creating your account.",
+     );
+   } finally {
+     setLoading(false);
+   }
   };
 
   return (

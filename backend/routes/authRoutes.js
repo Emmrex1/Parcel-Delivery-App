@@ -1,5 +1,5 @@
 import express from "express";
-import { addUser, login } from "../controllers/authController.js";
+import { addUser, login, register } from "../controllers/authController.js";
 import { authLimiter } from "../middleware/ratelimiter.js";
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
 
@@ -82,5 +82,38 @@ router.post("/login", authLimiter, login);
  *         description: Forbidden, user is not an admin
  */
 router.post("/add-user", protect, adminOnly, addUser);
+
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register a new customer
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 minLength: 6
+ *     responses:
+ *       201:
+ *         description: Customer registered successfully
+ *       400:
+ *         description: Validation error or user already exists
+ */
+router.post("/register", authLimiter, register);
 
 export default router;

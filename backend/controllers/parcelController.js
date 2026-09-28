@@ -8,12 +8,11 @@ import {
   createParcelSchema,
 } from "../validations/validation.js";
 
-
 // CREATE PARCEL
 
 export const createParcel = async (req, res, next) => {
   try {
-    // Validate request body
+    // Validate parcel fields
     const { error, value } = createParcelSchema.validate(req.body);
 
     if (error) {
@@ -25,13 +24,10 @@ export const createParcel = async (req, res, next) => {
 
     let customerId;
 
-   
-    // CUSTOMER CREATES THEIR OWN PARCEL
+    // CUSTOMER CREATES THEIR OWN PARCEL    
     if (req.user.role === "customer") {
       customerId = req.user._id;
     }
-
-
     // ADMIN CREATES A PARCEL FOR A CUSTOMER
     if (req.user.role === "admin") {
       const { customerId: adminCustomerId } = req.body;
@@ -58,7 +54,7 @@ export const createParcel = async (req, res, next) => {
       customerId = customer._id;
     }
 
-    // SAFETY CHECK   
+    // SAFETY CHECK
     if (!customerId) {
       return res.status(400).json({
         success: false,
@@ -86,29 +82,27 @@ export const createParcel = async (req, res, next) => {
       });
     }
 
+    // CREATE INITIAL CHECKPOINT
+    const initialCheckpoint = {
+      location: value.originCity,
+      status: "arrived",
+      title: `Parcel arrived at ${value.originCity} Branch`,
+      description: `Parcel has been received at ${value.originCity} Branch and is ready for shipment.`,
+      updatedBy: req.user._id,
+      timestamp: new Date(),
+    };
+
     // CREATE PARCEL
     const parcel = await Parcel.create({
       ...value,
-
       customer: customerId,
-
       trackingNumber,
-
       price: priceInfo.price,
-
-      checkpoints: [
-        {
-          location: value.originCity,
-          status: "arrived",
-          title: `Parcel arrived at ${value.originCity} Branch`,
-          description: `Parcel has been received at ${value.originCity} Branch and is ready for shipment.`,
-          updatedBy: req.user._id,
-        },
-      ],
+      status: "arrived",
+      checkpoints: [initialCheckpoint],
     });
 
     // POPULATE CUSTOMER
-   
     await parcel.populate("customer", "name email");
 
     return res.status(201).json({

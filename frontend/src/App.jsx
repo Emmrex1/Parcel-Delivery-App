@@ -6,21 +6,19 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import ProtectedRoute from "./components/protectedRoute";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import CustomerDashboardLayout from "./layouts/CustomerDashboardLayout";
 
-// Public pages
 import Index from "./pages/Index";
 import TrackParcel from "./pages/TrackParcel";
 import CalculateCost from "./pages/CalculateCost";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
-
-// Authentication
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Resume from "./pages/Resume";
-
+import Dashboard from "./pages/dashboard";
 
 const App = () => (
   <TooltipProvider>
@@ -31,48 +29,25 @@ const App = () => (
       <Navbar />
 
       <Routes>
+        {/* Public routes */}
 
         <Route path="/" element={<Index />} />
-
         <Route path="/track" element={<TrackParcel />} />
-
         <Route path="/calculate" element={<CalculateCost />} />
-
         <Route path="/about" element={<About />} />
-
         <Route path="/contact" element={<Contact />} />
-
         <Route path="/login" element={<Login />} />
-
         <Route path="/signup" element={<Signup />} />
-
         <Route path="/resume" element={<Resume />} />
 
+        {/* Protected customer routes */}
 
         <Route element={<ProtectedRoute />}>
-
-          {/* 
-          <Route
-            path="/dashboard"
-            element={<Dashboard />}
-          />
-
-          <Route
-            path="/my-shipments"
-            element={<Shipments />}
-          />
-
-          <Route
-            path="/send-parcel"
-            element={<CreateParcel />}
-          />
-
-          <Route
-            path="/profile"
-            element={<Profile />}
-          />
-          */}
+          <Route element={<CustomerDashboardLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+          </Route>
         </Route>
+
 
         <Route path="*" element={<NotFound />} />
       </Routes>

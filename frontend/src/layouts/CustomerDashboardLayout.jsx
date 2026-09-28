@@ -185,6 +185,7 @@ const CustomerDashboardLayout = () => {
         </div>
       </aside>
 
+
       <main className="lg:pl-64">
         <div className="min-h-screen">
           <Outlet />
