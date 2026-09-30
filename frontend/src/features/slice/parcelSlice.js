@@ -7,6 +7,8 @@ const getErrorMessage = (error) =>
   error?.message ||
   "Something went wrong";
 
+
+// Track Parcel
 export const trackParcelThunk = createAsyncThunk(
   "parcels/tracking",
   async (trackingId, thunkAPI) => {
@@ -28,6 +30,7 @@ export const trackParcelThunk = createAsyncThunk(
   }
 );
 
+// Calculate Cost
 
 export const calculateCostThunk = createAsyncThunk(
   "parcels/calculateCost",
@@ -51,6 +54,33 @@ export const calculateCostThunk = createAsyncThunk(
   }
 );
 
+// Create Customer Parcel
+export const createParcelThunk = createAsyncThunk(
+  "parcels/createCustomerParcel",
+  async (payload, thunkAPI) => {
+    try {
+      const { data } = await axiosInstance.post(
+        "/parcels/customer",
+        payload
+      );
+
+      toast.success(
+        data?.message || "Shipment created successfully"
+      );
+
+      return data;
+    } catch (error) {
+      const message = getErrorMessage(error);
+
+      toast.error(message);
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
+// Fetch My Shipments
+
 export const fetchMyShipmentsThunk = createAsyncThunk(
   "parcels/fetchMyShipments",
   async (_, thunkAPI) => {
@@ -59,7 +89,28 @@ export const fetchMyShipmentsThunk = createAsyncThunk(
         "/parcels/my-shipments"
       );
 
-      return data?.parcels || data?.data || [];
+      return data?.data || [];
+    } catch (error) {
+      const message = getErrorMessage(error);
+
+      toast.error(message);
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
+// Fetch Single Shipment
+
+export const fetchMyShipmentByIdThunk = createAsyncThunk(
+  "parcels/fetchMyShipmentById",
+  async (id, thunkAPI) => {
+    try {
+      const { data } = await axiosInstance.get(
+        `/parcels/my-shipments/${id}`
+      );
+
+      return data?.parcel || null;
     } catch (error) {
       const message = getErrorMessage(error);
 
@@ -71,23 +122,34 @@ export const fetchMyShipmentsThunk = createAsyncThunk(
 );
 
 
-const initialState = {
- 
+//  Initial State
 
+const initialState = {
+  // Tracking
   trackParcel: null,
   trackLoading: false,
   trackError: null,
-
-
+  
+  // Cost
   costQuote: null,
   costLoading: false,
   costError: null,
 
+  createLoading: false,
+  createError: null,
 
+  // Customer shipments
   myShipments: [],
   shipmentsLoading: false,
   shipmentsError: null,
+
+  // Single shipment
+  selectedShipment: null,
+  selectedShipmentLoading: false,
+  selectedShipmentError: null,
 };
+
+//  Initial State
 
 const parcelSlice = createSlice({
   name: "parcels",
@@ -95,7 +157,6 @@ const parcelSlice = createSlice({
   initialState,
 
   reducers: {
-
     clearTrack: (state) => {
       state.trackParcel = null;
       state.trackError = null;
@@ -110,11 +171,18 @@ const parcelSlice = createSlice({
       state.myShipments = [];
       state.shipmentsError = null;
     },
+
+    clearSelectedShipment: (state) => {
+      state.selectedShipment = null;
+      state.selectedShipmentError = null;
+    },
   },
 
   extraReducers: (builder) => {
     builder
 
+      //  Track Parcel
+      
       .addCase(trackParcelThunk.pending, (state) => {
         state.trackLoading = true;
         state.trackError = null;
@@ -132,6 +200,8 @@ const parcelSlice = createSlice({
           action.payload || "Failed to track parcel";
       })
 
+      //  Calculate Cost
+      
       .addCase(calculateCostThunk.pending, (state) => {
         state.costLoading = true;
         state.costError = null;
@@ -148,6 +218,8 @@ const parcelSlice = createSlice({
         state.costError =
           action.payload || "Failed to calculate cost";
       })
+
+      //  My Shipments
 
       .addCase(fetchMyShipmentsThunk.pending, (state) => {
         state.shipmentsLoading = true;
@@ -170,7 +242,58 @@ const parcelSlice = createSlice({
             action.payload ||
             "Failed to load your shipments";
         }
-      );
+      )
+
+      //  Single Shipment
+
+      .addCase(
+        fetchMyShipmentByIdThunk.pending,
+        (state) => {
+          state.selectedShipmentLoading = true;
+          state.selectedShipmentError = null;
+          state.selectedShipment = null;
+        }
+      )
+
+      .addCase(
+        fetchMyShipmentByIdThunk.fulfilled,
+        (state, action) => {
+          state.selectedShipmentLoading = false;
+          state.selectedShipment = action.payload;
+        }
+      )
+
+      .addCase(
+        fetchMyShipmentByIdThunk.rejected,
+        (state, action) => {
+          state.selectedShipmentLoading = false;
+          state.selectedShipmentError =
+            action.payload ||
+            "Failed to load shipment";
+        }
+      )
+
+      .addCase(createParcelThunk.pending, (state) => {
+        state.createLoading = true;
+        state.createError = null;
+      })
+
+      .addCase(createParcelThunk.fulfilled, (state, action) => {
+       state.createLoading = false;
+       state.createError = null;
+
+       const newParcel = action.payload?.parcel;
+
+      if (newParcel) {
+      state.myShipments.unshift(newParcel);
+        }
+        })
+
+      .addCase(createParcelThunk.rejected, (state, action) => {
+        state.createLoading = false;
+        state.createError =
+          action.payload || "Failed to create shipment";
+      });
   },
 });
 
@@ -178,7 +301,7 @@ export const {
   clearTrack,
   clearCost,
   clearMyShipments,
+  clearSelectedShipment,
 } = parcelSlice.actions;
-
 
 export default parcelSlice.reducer;

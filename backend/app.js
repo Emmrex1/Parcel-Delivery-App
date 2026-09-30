@@ -24,6 +24,7 @@ app.use(helmet());
 const allowedOrigins = [
   "http://localhost:5173",
   "http://192.168.0.199:5173",
+  "http://localhost:5174",
   // add your deployed frontend URL here once you deploy, e.g.:
   // "https://rapidxpress.vercel.app",
 ];
@@ -38,10 +39,7 @@ app.use(
         callback(new Error("Not allowed by CORS"));
       }
     },
-    // Only set this to true if you end up using cookie-based auth
-    // (e.g. refresh tokens via cookieParser). Not needed for your
-    // current Bearer-token flow.
-    // credentials: true,
+    
   })
 );
 

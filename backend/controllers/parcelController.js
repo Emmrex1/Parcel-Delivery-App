@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Parcel from "../model/Parcel.js";
 import User from "../model/User.js";
 import { calculateCost } from "../services/calculateCost.js";
@@ -198,8 +199,17 @@ export const getMyParcels = async (req, res, next) => {
 
 export const getMyParcelById = async (req, res, next) => {
   try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid parcel ID",
+      });
+    }
+
     const parcel = await Parcel.findOne({
-      _id: req.params.id,
+      _id: id,
       customer: req.user._id,
     })
       .populate("customer", "name email")
@@ -335,7 +345,16 @@ export const calculateCostCalculator = async (req, res, next) => {
       });
     }
 
-    const cost = calculateCost(value);
+    let cost;
+
+    try {
+      cost = calculateCost(value);
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
 
     return res.status(200).json({
       success: true,

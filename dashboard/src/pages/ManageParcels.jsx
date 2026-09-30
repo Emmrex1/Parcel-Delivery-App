@@ -132,7 +132,6 @@ const formatShipmentType = (type) => {
 
 //  Manage Parcels
 
-
 export default function ManageParcels() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -148,7 +147,6 @@ export default function ManageParcels() {
 
   //  Local State
   
-
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [shipmentFilter, setShipmentFilter] =
@@ -206,7 +204,6 @@ export default function ManageParcels() {
 
   //  Pagination
   
-
   const totalPages = meta?.totalPages || 1;
 
   const totalItems = meta?.total || 0;
@@ -223,7 +220,6 @@ export default function ManageParcels() {
 
   //  Refresh
   
-
   const handleRefresh = () => {
     loadParcels();
   };

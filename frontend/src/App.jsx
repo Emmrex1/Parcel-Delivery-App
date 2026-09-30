@@ -17,9 +17,11 @@ import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import Resume from "./pages/Resume";
-import Dashboard from "./pages/dashboard";
 
+import Dashboard from "./pages/dashboard/Dashboard";
+import MyShipments from "./pages/dashboard/myshipments";
+import ShipmentDetails from "./pages/dashboard/shipmentDetails";
+import SendParcel from "./pages/dashboard/sendParcel";
 const App = () => (
   <TooltipProvider>
     <Toaster />
@@ -38,16 +40,23 @@ const App = () => (
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/resume" element={<Resume />} />
 
         {/* Protected customer routes */}
 
         <Route element={<ProtectedRoute />}>
           <Route element={<CustomerDashboardLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+
+            <Route path="/my-shipments" element={<MyShipments />} />
+
+            <Route path="/my-shipments/:id" element={<ShipmentDetails />} />
+           
+            <Route path="/send-parcel" element={<SendParcel />} />
+          
           </Route>
         </Route>
 
+        {/* 404 */}
 
         <Route path="*" element={<NotFound />} />
       </Routes>
