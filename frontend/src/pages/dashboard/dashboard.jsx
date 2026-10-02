@@ -43,7 +43,7 @@ const Dashboard = () => {
       delivered: shipments.filter((parcel) => parcel.status === "delivered")
         .length,
 
-      pending: shipments.filter((parcel) => parcel.status === "arrived").length,
+      pending: shipments.filter((parcel) => parcel.status === "pending").length,
     };
   }, [myShipments]);
 
@@ -55,6 +55,9 @@ const Dashboard = () => {
 
   const formatStatus = (status) => {
     switch (status) {
+      case "pending":
+        return "Pending";
+
       case "arrived":
         return "Arrived";
 

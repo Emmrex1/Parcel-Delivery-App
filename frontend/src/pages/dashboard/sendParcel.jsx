@@ -12,6 +12,7 @@ import {
   Truck,
   Loader2,
   ShieldCheck,
+  Globe,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ const INITIAL_FORM = {
 
   originCity: "",
   destinationCity: "",
+  destinationCountry: "",
 
   shipmentType: "national",
   deliveryType: "standard",
@@ -59,6 +61,44 @@ const STEPS = [
     title: "Review",
     description: "Confirm & send",
   },
+];
+
+const INTERNATIONAL_COUNTRIES = [
+  { value: "Ghana", label: "Ghana" },
+  { value: "Kenya", label: "Kenya" },
+  { value: "South Africa", label: "South Africa" },
+  { value: "Egypt", label: "Egypt" },
+  { value: "Morocco", label: "Morocco" },
+
+  { value: "United Kingdom", label: "United Kingdom" },
+  { value: "France", label: "France" },
+  { value: "Germany", label: "Germany" },
+  { value: "Italy", label: "Italy" },
+  { value: "Spain", label: "Spain" },
+  { value: "Netherlands", label: "Netherlands" },
+  { value: "Belgium", label: "Belgium" },
+
+  { value: "United States", label: "United States" },
+  { value: "Canada", label: "Canada" },
+
+  { value: "Brazil", label: "Brazil" },
+  { value: "Argentina", label: "Argentina" },
+  { value: "Chile", label: "Chile" },
+
+  { value: "China", label: "China" },
+  { value: "India", label: "India" },
+  { value: "Japan", label: "Japan" },
+  { value: "Singapore", label: "Singapore" },
+  { value: "Malaysia", label: "Malaysia" },
+  { value: "South Korea", label: "South Korea" },
+
+  { value: "United Arab Emirates", label: "United Arab Emirates" },
+  { value: "Saudi Arabia", label: "Saudi Arabia" },
+  { value: "Qatar", label: "Qatar" },
+  { value: "Israel", label: "Israel" },
+
+  { value: "Australia", label: "Australia" },
+  { value: "New Zealand", label: "New Zealand" },
 ];
 
 const formatCurrency = (amount = 0) => {
@@ -93,28 +133,40 @@ const SendParcel = () => {
 
   const breakdown = costQuote?.breakdown;
 
-  // ----------------------------------------------------------
   // INPUT HANDLER
-  // ----------------------------------------------------------
+  
 
   const handleChange = (event) => {
     const { name, value } = event.target;
 
-    setForm((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
+    setForm((previous) => {
+      const updated = {
+        ...previous,
+        [name]: value,
+      };
+
+      if (name === "shipmentType" && value === "national") {
+        updated.destinationCountry = "Nigeria";
+      }
+
+      if (name === "shipmentType" && value === "international") {
+        updated.destinationCountry = "";
+      }
+
+      return updated;
+    });
 
     setErrors((previous) => ({
       ...previous,
       [name]: "",
+      ...(name === "shipmentType" ? { destinationCountry: "" } : {}),
     }));
 
-    // If shipment pricing changes, remove old quote.
     if (
       [
         "originCity",
         "destinationCity",
+        "destinationCountry",
         "shipmentType",
         "deliveryType",
         "parcelCategory",
@@ -125,10 +177,8 @@ const SendParcel = () => {
     }
   };
 
-  // ----------------------------------------------------------
   // VALIDATION
-  // ----------------------------------------------------------
-
+  
   const validateStepOne = () => {
     const newErrors = {};
 
@@ -172,8 +222,17 @@ const SendParcel = () => {
       newErrors.destinationCity = "Destination city is required.";
     }
 
+    if (
+      form.shipmentType === "international" &&
+      !form.destinationCountry.trim()
+    ) {
+      newErrors.destinationCountry = "Destination country is required.";
+    }
+
     if (!form.weight || Number(form.weight) <= 0) {
       newErrors.weight = "Please enter a valid weight greater than 0.";
+    } else if (Number(form.weight) > 70) {
+      newErrors.weight = "Shipments above 70kg require a custom freight quote.";
     }
 
     setErrors(newErrors);
@@ -181,9 +240,7 @@ const SendParcel = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // ----------------------------------------------------------
-  // STEP NAVIGATION
-  // ----------------------------------------------------------
+  //  STEP NAVIGATIO
 
   const handleNext = async () => {
     if (step === 1) {
@@ -196,10 +253,16 @@ const SendParcel = () => {
     if (step === 2) {
       if (!validateStepTwo()) return;
 
+      const destinationCountry =
+        form.shipmentType === "national"
+          ? "Nigeria"
+          : form.destinationCountry.trim();
+
       const result = await dispatch(
         calculateCostThunk({
           originCity: form.originCity.trim(),
           destinationCity: form.destinationCity.trim(),
+          destinationCountry,
           shipmentType: form.shipmentType,
           deliveryType: form.deliveryType,
           parcelCategory: form.parcelCategory,
@@ -219,14 +282,17 @@ const SendParcel = () => {
     }
   };
 
-  // ----------------------------------------------------------
   // CREATE SHIPMENT
-  // ----------------------------------------------------------
 
   const handleCreateShipment = async () => {
     if (!costQuote?.price) {
       return;
     }
+
+    const destinationCountry =
+      form.shipmentType === "national"
+        ? "Nigeria"
+        : form.destinationCountry.trim();
 
     const result = await dispatch(
       createParcelThunk({
@@ -240,6 +306,7 @@ const SendParcel = () => {
 
         originCity: form.originCity.trim(),
         destinationCity: form.destinationCity.trim(),
+        destinationCountry,
 
         shipmentType: form.shipmentType,
         deliveryType: form.deliveryType,
@@ -260,9 +327,7 @@ const SendParcel = () => {
     }
   };
 
-  // ----------------------------------------------------------
   // STEP 1
-  // ----------------------------------------------------------
 
   const renderStepOne = () => {
     return (
@@ -410,9 +475,7 @@ const SendParcel = () => {
     );
   };
 
-  // ----------------------------------------------------------
   // STEP 2
-  // ----------------------------------------------------------
 
   const renderStepTwo = () => {
     return (
@@ -433,40 +496,7 @@ const SendParcel = () => {
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="originCity">Origin city</Label>
-
-              <Input
-                id="originCity"
-                name="originCity"
-                value={form.originCity}
-                onChange={handleChange}
-                placeholder="Lagos"
-              />
-
-              {errors.originCity && (
-                <p className="text-sm text-destructive">{errors.originCity}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="destinationCity">Destination city</Label>
-
-              <Input
-                id="destinationCity"
-                name="destinationCity"
-                value={form.destinationCity}
-                onChange={handleChange}
-                placeholder="Abuja"
-              />
-
-              {errors.destinationCity && (
-                <p className="text-sm text-destructive">
-                  {errors.destinationCity}
-                </p>
-              )}
-            </div>
-
+            {/* Shipment type */}
             <div className="space-y-2">
               <Label htmlFor="shipmentType">Shipment type</Label>
 
@@ -483,6 +513,78 @@ const SendParcel = () => {
               </select>
             </div>
 
+            {/* Origin city */}
+            <div className="space-y-2">
+              <Label htmlFor="originCity">Origin city</Label>
+
+              <Input
+                id="originCity"
+                name="originCity"
+                value={form.originCity}
+                onChange={handleChange}
+                placeholder="Lagos"
+              />
+
+              {errors.originCity && (
+                <p className="text-sm text-destructive">{errors.originCity}</p>
+              )}
+            </div>
+
+            {/* Destination country - international only */}
+            {form.shipmentType === "international" && (
+              <div className="space-y-2">
+                <Label htmlFor="destinationCountry">Destination country</Label>
+
+                <div className="relative">
+                  <Globe className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+
+                  <select
+                    id="destinationCountry"
+                    name="destinationCountry"
+                    value={form.destinationCountry}
+                    onChange={handleChange}
+                    className="flex h-10 w-full rounded-md border bg-background pl-9 pr-3 py-2 text-sm"
+                  >
+                    <option value="">Select destination country</option>
+
+                    {INTERNATIONAL_COUNTRIES.map((country) => (
+                      <option key={country.value} value={country.value}>
+                        {country.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {errors.destinationCountry && (
+                  <p className="text-sm text-destructive">
+                    {errors.destinationCountry}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Destination city */}
+            <div className="space-y-2">
+              <Label htmlFor="destinationCity">Destination city</Label>
+
+              <Input
+                id="destinationCity"
+                name="destinationCity"
+                value={form.destinationCity}
+                onChange={handleChange}
+                placeholder={
+                  form.shipmentType === "international" ? "London" : "Abuja"
+                }
+              />
+
+              {errors.destinationCity && (
+                <p className="text-sm text-destructive">
+                  {errors.destinationCity}
+                </p>
+              )}
+            </div>
+
+            {/* Delivery speed */}
             <div className="space-y-2">
               <Label htmlFor="deliveryType">Delivery speed</Label>
 
@@ -501,6 +603,7 @@ const SendParcel = () => {
               </select>
             </div>
 
+            {/* Parcel category */}
             <div className="space-y-2">
               <Label htmlFor="parcelCategory">Parcel category</Label>
 
@@ -533,6 +636,7 @@ const SendParcel = () => {
               </select>
             </div>
 
+            {/* Weight */}
             <div className="space-y-2">
               <Label htmlFor="weight">Weight (kg)</Label>
 
@@ -569,8 +673,9 @@ const SendParcel = () => {
               </p>
 
               <p className="mt-1 text-sm text-muted-foreground">
-                We'll calculate your delivery cost based on the route, weight,
-                delivery speed and parcel handling requirements.
+                We'll calculate your delivery cost based on the route,
+                destination region, weight, delivery speed and parcel handling
+                requirements.
               </p>
             </div>
           </div>
@@ -578,10 +683,7 @@ const SendParcel = () => {
       </div>
     );
   };
-
-  // ----------------------------------------------------------
   // STEP 3
-  // ----------------------------------------------------------
 
   const renderStepThree = () => {
     return (
@@ -604,11 +706,18 @@ const SendParcel = () => {
 
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Shipment summary */}
-
           <div className="rounded-2xl border p-6">
             <h3 className="mb-5 font-semibold">Shipment information</h3>
 
             <div className="space-y-4 text-sm">
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">Shipment type</span>
+
+                <span className="font-medium">
+                  {formatLabel(form.shipmentType)}
+                </span>
+              </div>
+
               <div className="flex justify-between gap-4">
                 <span className="text-muted-foreground">Sender</span>
 
@@ -626,10 +735,21 @@ const SendParcel = () => {
               </div>
 
               <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">Route</span>
+                <span className="text-muted-foreground">Origin</span>
 
                 <span className="font-medium text-right">
-                  {form.originCity} → {form.destinationCity}
+                  {form.originCity}, Nigeria
+                </span>
+              </div>
+
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">Destination</span>
+
+                <span className="font-medium text-right">
+                  {form.destinationCity},{" "}
+                  {form.shipmentType === "national"
+                    ? "Nigeria"
+                    : form.destinationCountry}
                 </span>
               </div>
 
@@ -658,7 +778,6 @@ const SendParcel = () => {
           </div>
 
           {/* Price breakdown */}
-
           <div className="rounded-2xl border bg-card p-6 shadow-sm">
             <h3 className="mb-5 font-semibold">Delivery cost</h3>
 
@@ -671,7 +790,9 @@ const SendParcel = () => {
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between gap-4">
                     <span className="text-muted-foreground">
-                      {formatLabel(breakdown?.zone)}
+                      {formatLabel(
+                        breakdown?.zone || breakdown?.destinationZone,
+                      )}
                     </span>
 
                     <span>{formatCurrency(breakdown?.zoneCharge)}</span>
@@ -734,15 +855,12 @@ const SendParcel = () => {
     );
   };
 
-  // ----------------------------------------------------------
   // PAGE
-  // ----------------------------------------------------------
 
   return (
     <div className="min-h-screen bg-muted/20">
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Back */}
-
         <Link
           to="/dashboard"
           className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground"
@@ -752,7 +870,6 @@ const SendParcel = () => {
         </Link>
 
         {/* Header */}
-
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight">Send a Parcel</h1>
 
@@ -762,7 +879,6 @@ const SendParcel = () => {
         </div>
 
         {/* Progress */}
-
         <div className="mb-8 rounded-2xl border bg-card p-5">
           <div className="grid grid-cols-3 gap-3">
             {STEPS.map((item) => {
@@ -803,7 +919,6 @@ const SendParcel = () => {
         </div>
 
         {/* Main card */}
-
         <div className="rounded-2xl border bg-card shadow-sm">
           <div className="p-6 sm:p-8">
             {step === 1 && renderStepOne()}
@@ -812,7 +927,6 @@ const SendParcel = () => {
           </div>
 
           {/* Footer actions */}
-
           <div className="flex flex-col-reverse gap-3 border-t bg-muted/20 p-5 sm:flex-row sm:items-center sm:justify-between">
             <Button
               type="button"

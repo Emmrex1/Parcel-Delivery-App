@@ -36,7 +36,10 @@ const MyShipments = () => {
 
   const formatStatus = (value) => {
     switch (value) {
-      case "arrived":
+      case "pending":
+        return "bg-yellow-100 text-yellow-700";
+     
+        case "arrived":
         return "Arrived";
 
       case "in_transit":
@@ -55,7 +58,10 @@ const MyShipments = () => {
 
   const getStatusClasses = (value) => {
     switch (value) {
-      case "delivered":
+      case "pending":
+        return "bg-yellow-100 text-yellow-700";
+     
+        case "delivered":
         return "bg-green-100 text-green-700";
 
       case "in_transit":

@@ -22,6 +22,7 @@ const checkpointSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: [
+        "pending",
         "arrived",
         "in_transit",
         "out_for_delivery",
@@ -47,16 +48,13 @@ const checkpointSchema = new mongoose.Schema(
 
 const parcelSchema = new mongoose.Schema(
   {
-    // PARCEL OWNERSHIP
-    
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
       index: true,
     },
-    // TRACKING
-    
+
     trackingNumber: {
       type: String,
       required: true,
@@ -64,7 +62,7 @@ const parcelSchema = new mongoose.Schema(
       index: true,
       trim: true,
     },
-    // SENDER INFORMATION
+
     senderName: {
       type: String,
       required: true,
@@ -82,8 +80,7 @@ const parcelSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    // RECEIVER INFORMATION
-    
+
     receiverName: {
       type: String,
       required: true,
@@ -102,7 +99,6 @@ const parcelSchema = new mongoose.Schema(
       trim: true,
     },
 
-    // SHIPMENT INFORMATION
     shipmentType: {
       type: String,
       enum: ["national", "international"],
@@ -116,6 +112,12 @@ const parcelSchema = new mongoose.Schema(
     },
 
     destinationCity: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    destinationCountry: {
       type: String,
       required: true,
       trim: true,
@@ -151,29 +153,26 @@ const parcelSchema = new mongoose.Schema(
       min: 0,
     },
 
-    // PAYMENT / PRICE
-   
     price: {
       type: Number,
       required: true,
       min: 0,
     },
-   
-    // CURRENT STATUS
+
     status: {
       type: String,
-      enum: [
-        "arrived",
-        "in_transit",
-        "out_for_delivery",
-        "delivered",
-      ],
-      default: "arrived",
+     enum: [
+     "pending",
+     "arrived",
+     "in_transit",
+     "out_for_delivery",
+     "delivered",
+     
+     ],
+     default: "pending",
       required: true,
     },
 
-    // TRACKING HISTORY
-    
     checkpoints: [checkpointSchema],
   },
   {

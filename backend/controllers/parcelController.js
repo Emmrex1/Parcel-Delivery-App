@@ -65,13 +65,14 @@ export const createParcel = async (req, res, next) => {
 
     // CALCULATE DELIVERY COST
     const priceInfo = calculateCost({
-      originCity: value.originCity,
-      destinationCity: value.destinationCity,
-      shipmentType: value.shipmentType,
-      deliveryType: value.deliveryType,
-      parcelCategory: value.parcelCategory,
-      weight: value.weight,
-    });
+  originCity: value.originCity,
+  destinationCity: value.destinationCity,
+  destinationCountry: value.destinationCountry,
+  shipmentType: value.shipmentType,
+  deliveryType: value.deliveryType,
+  parcelCategory: value.parcelCategory,
+  weight: value.weight,
+});
 
     // GENERATE TRACKING NUMBER
     const trackingNumber = generateTrackingId();
@@ -89,6 +90,7 @@ export const createParcel = async (req, res, next) => {
       status: "arrived",
       title: `Parcel arrived at ${value.originCity} Branch`,
       description: `Parcel has been received at ${value.originCity} Branch and is ready for shipment.`,
+       status: "pending",
       updatedBy: req.user._id,
       timestamp: new Date(),
     };
@@ -99,7 +101,7 @@ export const createParcel = async (req, res, next) => {
       customer: customerId,
       trackingNumber,
       price: priceInfo.price,
-      status: "arrived",
+      status: "pending",
       checkpoints: [initialCheckpoint],
     });
 

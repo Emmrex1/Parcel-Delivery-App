@@ -57,6 +57,11 @@ const STATUS_OPTIONS = [
     value: "all",
     label: "All Statuses",
   },
+
+  {
+    value: "pending",
+    label: "Pending",
+  },
   {
     value: "arrived",
     label: "Arrived",

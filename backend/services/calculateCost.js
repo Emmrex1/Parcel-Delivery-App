@@ -1,205 +1,199 @@
+// DELIVERY TYPE CHARGES
+
 const DELIVERY_TYPE_CHARGES = {
-  sameday: 1500,
-  overnight: 800,
   standard: 0,
+  overnight: 2500,
+  sameday: 5000,
 };
 
-// NATIONAL DELIVERY ZONES
+// NATIONAL ZONE CHARGES
 
 const NATIONAL_ZONE_CHARGES = {
   same_city: 1000,
-  same_zone: 2000,
-  adjacent_zone: 3000,
+  short_distance: 2500,
   long_distance: 4500,
 };
 
-// NATIONAL WEIGHT CHARGES
-
-const NATIONAL_WEIGHT_CHARGES = {
-  up_to_1kg: 0,
-  up_to_5kg: 1000,
-  up_to_10kg: 2500,
-  up_to_25kg: 5000,
-  up_to_50kg: 8500,
-  up_to_70kg: 12000,
-};
-
-// NATIONAL SPECIAL HANDLING CHARGES
+// NATIONAL HANDLING CHARGES
 
 const NATIONAL_HANDLING_CHARGES = {
   document: 0,
-  electronics: 300,
-  fragile: 500,
-  clothing: 0,
-  food: 300,
-  medicine: 500,
-  cosmetics: 200,
   books: 0,
-  small_package: 200,
-  large_package: 700,
+  clothing: 300,
+  cosmetics: 500,
+  food: 700,
+  medicine: 800,
+  electronics: 1200,
+  fragile: 1500,
+  small_package: 600,
+  large_package: 2000,
 };
 
-// INTERNATIONAL DESTINATION ZONES
+// INTERNATIONAL ZONE CHARGES
 
 const INTERNATIONAL_ZONE_CHARGES = {
   africa: 15000,
-  europe: 30000,
-  north_america: 40000,
-  south_america: 45000,
-  asia: 35000,
-  middle_east: 30000,
-  oceania: 45000,
+  europe: 25000,
+  north_america: 30000,
+  south_america: 32000,
+  asia: 28000,
+  middle_east: 22000,
+  oceania: 35000,
 };
 
-// INTERNATIONAL SPECIAL HANDLING
+// INTERNATIONAL HANDLING CHARGES
 
 const INTERNATIONAL_HANDLING_CHARGES = {
-  document: 0,
-  electronics: 3000,
-  fragile: 5000,
-  clothing: 1000,
-  food: 3000,
-  medicine: 4000,
+  document: 1000,
+  books: 1200,
+  clothing: 1500,
   cosmetics: 2000,
-  books: 500,
-  small_package: 1500,
-  large_package: 5000,
+  food: 2500,
+  medicine: 3000,
+  electronics: 5000,
+  fragile: 6000,
+  small_package: 2000,
+  large_package: 7000,
 };
 
+// COUNTRY → ZONE MAP
 
-// CITY → ZONE MAPPING
+const INTERNATIONAL_COUNTRY_ZONES = {
+  // Africa
+  ghana: "africa",
+  kenya: "africa",
+  egypt: "africa",
+  south_africa: "africa",
 
-const CITY_ZONES = {
-  // South West
-  lagos: "south_west",
-  ibadan: "south_west",
-  abeokuta: "south_west",
-  akure: "south_west",
-  osogbo: "south_west",
-  ado_ekiti: "south_west",
+  // Europe
+  united_kingdom: "europe",
+  uk: "europe",
+  france: "europe",
+  germany: "europe",
 
-  // South South
-  benin: "south_south",
-  benin_city: "south_south",
-  warri: "south_south",
-  port_harcourt: "south_south",
-  uyo: "south_south",
-  calabar: "south_south",
-  yenagoa: "south_south",
-  asaba: "south_south",
+  // North America
+  united_states: "north_america",
+  usa: "north_america",
+  canada: "north_america",
 
-  // South East
-  enugu: "south_east",
-  onitsha: "south_east",
-  owerri: "south_east",
-  aba: "south_east",
-  umuahia: "south_east",
-  awka: "south_east",
+  // Asia
+  china: "asia",
+  india: "asia",
+  japan: "asia",
+  singapore: "asia",
 
-  // North Central
-  abuja: "north_central",
-  minna: "north_central",
-  lokoja: "north_central",
-  ilorin: "north_central",
-  jos: "north_central",
-  makurdi: "north_central",
+  // Middle East
+  uae: "middle_east",
+  united_arab_emirates: "middle_east",
+  qatar: "middle_east",
+  saudi_arabia: "middle_east",
 
-  // North West
-  kano: "north_west",
-  kaduna: "north_west",
-  katsina: "north_west",
-  sokoto: "north_west",
-  kebbi: "north_west",
-  zamfara: "north_west",
-
-  // North East
-  maiduguri: "north_east",
-  yola: "north_east",
-  bauchi: "north_east",
-  gombe: "north_east",
-  jalingo: "north_east",
+  // Oceania
+  australia: "oceania",
+  new_zealand: "oceania",
 };
 
-// NORMALIZE CITY NAME
+// NORMALIZE COUNTRY
 
-const normalizeCity = (city) => {
-  return city
+const normalizeCountry = (country) => {
+  return country
     .trim()
     .toLowerCase()
     .replace(/\s+/g, "_");
 };
 
-// DETERMINE NATIONAL DELIVERY ZONE
+// GET INTERNATIONAL ZONE
 
-const getNationalDeliveryZone = (
-  originCity,
-  destinationCity
-) => {
-  const origin = normalizeCity(originCity);
-  const destination = normalizeCity(destinationCity);
+const getInternationalDestinationZone = (country) => {
+  const normalized = normalizeCountry(country);
 
-  if (origin === destination) {
+  return INTERNATIONAL_COUNTRY_ZONES[normalized] || null;
+};
+
+// NATIONAL DELIVERY ZONE
+
+const getNationalZone = (origin, destination) => {
+  const originLower = origin.toLowerCase();
+  const destinationLower = destination.toLowerCase();
+
+  if (originLower === destinationLower) {
     return "same_city";
   }
 
-  const originZone = CITY_ZONES[origin];
-  const destinationZone = CITY_ZONES[destination];
+  const northernCities = [
+    "abuja",
+    "kaduna",
+    "kano",
+    "jos",
+  ];
 
-  // Unknown cities are treated as long-distance.
-  if (!originZone || !destinationZone) {
-    return "long_distance";
-  }
+  const southernCities = [
+    "lagos",
+    "ibadan",
+    "port harcourt",
+    "benin",
+  ];
 
-  // Same geographical region
-  if (originZone === destinationZone) {
-    return "same_zone";
+  const originNorth = northernCities.includes(originLower);
+  const destinationNorth =
+    northernCities.includes(destinationLower);
+
+  const originSouth = southernCities.includes(originLower);
+  const destinationSouth =
+    southernCities.includes(destinationLower);
+
+  if (
+    (originNorth && destinationNorth) ||
+    (originSouth && destinationSouth)
+  ) {
+    return "short_distance";
   }
 
   return "long_distance";
 };
 
-// NATIONAL WEIGHT CALCULATION
+// NATIONAL WEIGHT
 
 const calculateNationalWeightCharge = (weight) => {
   if (weight <= 1) {
     return {
       band: "0-1kg",
-      charge: NATIONAL_WEIGHT_CHARGES.up_to_1kg,
+      charge: 0,
     };
   }
 
   if (weight <= 5) {
     return {
       band: "1-5kg",
-      charge: NATIONAL_WEIGHT_CHARGES.up_to_5kg,
+      charge: 1000,
     };
   }
 
   if (weight <= 10) {
     return {
       band: "5-10kg",
-      charge: NATIONAL_WEIGHT_CHARGES.up_to_10kg,
+      charge: 2500,
     };
   }
 
   if (weight <= 25) {
     return {
       band: "10-25kg",
-      charge: NATIONAL_WEIGHT_CHARGES.up_to_25kg,
+      charge: 5000,
     };
   }
 
   if (weight <= 50) {
     return {
       band: "25-50kg",
-      charge: NATIONAL_WEIGHT_CHARGES.up_to_50kg,
+      charge: 9000,
     };
   }
 
   if (weight <= 70) {
     return {
       band: "50-70kg",
-      charge: NATIONAL_WEIGHT_CHARGES.up_to_70kg,
+      charge: 15000,
     };
   }
 
@@ -208,29 +202,28 @@ const calculateNationalWeightCharge = (weight) => {
   );
 };
 
-
-// INTERNATIONAL WEIGHT CALCULATION
+// INTERNATIONAL WEIGHT
 
 const calculateInternationalWeight = (weight) => {
   if (weight <= 0.5) {
     return {
       band: "0-0.5kg",
-      charge: 7500,
+      charge: 0,
     };
   }
 
   if (weight <= 1) {
     return {
       band: "0.5-1kg",
-      charge: 13500,
+      charge: 5000,
     };
   }
 
   const extraKg = Math.ceil(weight - 1);
 
   return {
-    band: `${weight}kg+`,
-    charge: 13500 + extraKg * 7500,
+    band: `${weight}kg`,
+    charge: 5000 + extraKg * 4000,
   };
 };
 
@@ -239,67 +232,38 @@ const calculateInternationalWeight = (weight) => {
 export const calculateCost = ({
   originCity,
   destinationCity,
+  destinationCountry,
   shipmentType,
   deliveryType,
   parcelCategory,
   weight,
 }) => {
-  
-  // VALIDATION
-  
-  if (!originCity || !destinationCity) {
-    throw new Error(
-      "Origin city and destination city are required."
-    );
-  }
-
-  if (!shipmentType) {
-    throw new Error("Shipment type is required.");
-  }
-
-  if (!deliveryType) {
-    throw new Error("Delivery type is required.");
-  }
-
-  if (!parcelCategory) {
-    throw new Error("Parcel category is required.");
-  }
 
   if (!weight || weight <= 0) {
-    throw new Error("Weight must be greater than 0.");
+    throw new Error("Invalid weight.");
   }
-
-  // DELIVERY TYPE
 
   const deliveryTypeCharge =
-    DELIVERY_TYPE_CHARGES[deliveryType];
+    DELIVERY_TYPE_CHARGES[deliveryType] || 0;
 
-  if (deliveryTypeCharge === undefined) {
-    throw new Error("Invalid delivery type.");
-  }
-
-  // NATIONAL SHIPMENT
+  // NATIONAL
 
   if (shipmentType === "national") {
-    const deliveryZone = getNationalDeliveryZone(
+    const zone = getNationalZone(
       originCity,
       destinationCity
     );
 
     const zoneCharge =
-      NATIONAL_ZONE_CHARGES[deliveryZone];
+      NATIONAL_ZONE_CHARGES[zone];
 
     const weightInfo =
       calculateNationalWeightCharge(weight);
 
     const handlingCharge =
-      NATIONAL_HANDLING_CHARGES[parcelCategory];
-
-    if (handlingCharge === undefined) {
-      throw new Error(
-        "Invalid parcel category for national shipment."
-      );
-    }
+      NATIONAL_HANDLING_CHARGES[
+        parcelCategory
+      ] || 0;
 
     const price =
       zoneCharge +
@@ -309,52 +273,52 @@ export const calculateCost = ({
 
     return {
       type: "national",
-
       originCity,
       destinationCity,
-
       parcelCategory,
-
       weight,
-
       currency: "NGN",
-
       price,
 
       breakdown: {
-        zone: deliveryZone,
+        zone,
         zoneCharge,
-
         weightBand: weightInfo.band,
         weightCharge: weightInfo.charge,
-
         deliveryType,
         deliveryTypeCharge,
-
         handlingCharge,
       },
     };
   }
 
-  // INTERNATIONAL SHIPMENT
+  // INTERNATIONAL
 
   if (shipmentType === "international") {
+
+    const destinationZone =
+      getInternationalDestinationZone(
+        destinationCountry
+      );
+
+    if (!destinationZone) {
+      throw new Error(
+        `Shipping to ${destinationCountry} is not supported yet.`
+      );
+    }
+
+    const zoneCharge =
+      INTERNATIONAL_ZONE_CHARGES[
+        destinationZone
+      ];
+
     const weightInfo =
       calculateInternationalWeight(weight);
 
     const handlingCharge =
-      INTERNATIONAL_HANDLING_CHARGES[parcelCategory];
-
-    if (handlingCharge === undefined) {
-      throw new Error(
-        "Invalid parcel category for international shipment."
-      );
-    }
-
-    const destinationZone = "africa";
-
-    const zoneCharge =
-      INTERNATIONAL_ZONE_CHARGES[destinationZone];
+      INTERNATIONAL_HANDLING_CHARGES[
+        parcelCategory
+      ] || 0;
 
     const price =
       zoneCharge +
@@ -364,38 +328,27 @@ export const calculateCost = ({
 
     return {
       type: "international",
-
       originCity,
       destinationCity,
-
+      destinationCountry,
       parcelCategory,
-
       weight,
-
       currency: "NGN",
-
       price,
 
       breakdown: {
         destinationZone,
         zoneCharge,
-
         weightBand: weightInfo.band,
         weightCharge: weightInfo.charge,
-
         deliveryType,
         deliveryTypeCharge,
-
         handlingCharge,
-
-        customsAndTaxes: "Not included",
       },
     };
   }
 
-  //  INVALID SHIPMENT TYPE
-  
   throw new Error(
-    "Invalid shipment type. Must be 'national' or 'international'."
+    "Invalid shipment type."
   );
 };
