@@ -37,9 +37,9 @@ const MyShipments = () => {
   const formatStatus = (value) => {
     switch (value) {
       case "pending":
-        return "bg-yellow-100 text-yellow-700";
-     
-        case "arrived":
+        return "Pending";
+
+      case "arrived":
         return "Arrived";
 
       case "in_transit":
@@ -60,8 +60,8 @@ const MyShipments = () => {
     switch (value) {
       case "pending":
         return "bg-yellow-100 text-yellow-700";
-     
-        case "delivered":
+
+      case "delivered":
         return "bg-green-100 text-green-700";
 
       case "in_transit":
@@ -107,13 +107,13 @@ const MyShipments = () => {
               className="h-10 w-full rounded-md border bg-background pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
-
           <select
             value={status}
             onChange={(event) => setStatus(event.target.value)}
             className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-accent"
           >
             <option value="all">All Statuses</option>
+            <option value="pending">Pending</option>
             <option value="arrived">Arrived</option>
             <option value="in_transit">In Transit</option>
             <option value="out_for_delivery">Out for Delivery</option>

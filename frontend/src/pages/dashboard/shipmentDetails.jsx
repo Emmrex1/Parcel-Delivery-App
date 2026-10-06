@@ -12,6 +12,8 @@ import {
   Loader2,
   CheckCircle2,
   Clock3,
+  Globe2,
+  CalendarDays,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -41,6 +43,9 @@ const ShipmentDetails = () => {
 
   const formatStatus = (status) => {
     switch (status) {
+      case "pending":
+        return "Pending";
+
       case "arrived":
         return "Arrived";
 
@@ -60,6 +65,9 @@ const ShipmentDetails = () => {
 
   const getStatusClasses = (status) => {
     switch (status) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-700";
+
       case "delivered":
         return "bg-green-100 text-green-700";
 
@@ -75,6 +83,26 @@ const ShipmentDetails = () => {
       default:
         return "bg-muted text-muted-foreground";
     }
+  };
+
+  const formatLabel = (value) => {
+    if (!value) return "—";
+
+    return value
+      .replaceAll("_", " ")
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  };
+
+  const formatDate = (date) => {
+    if (!date) return "—";
+
+    return new Date(date).toLocaleString("en-NG", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   if (selectedShipmentLoading) {
@@ -132,13 +160,21 @@ const ShipmentDetails = () => {
 
         {/* Header */}
         <div className="rounded-xl border bg-background p-6 shadow-sm">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Tracking Number</p>
 
               <h1 className="mt-1 text-2xl font-bold">
                 {parcel.trackingNumber}
               </h1>
+
+              {parcel.createdAt && (
+                <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                  <CalendarDays className="h-3.5 w-3.5" />
+
+                  <span>Created {formatDate(parcel.createdAt)}</span>
+                </div>
+              )}
             </div>
 
             <span
@@ -153,8 +189,9 @@ const ShipmentDetails = () => {
 
         {/* Route */}
         <div className="mt-6 grid gap-4 md:grid-cols-2">
+          {/* Origin */}
           <div className="rounded-xl border bg-background p-6 shadow-sm">
-            <div className="flex items-center gap-3">
+            <div className="flex items-start gap-3">
               <div className="rounded-lg bg-accent/10 p-3">
                 <MapPin className="h-5 w-5 text-accent" />
               </div>
@@ -163,12 +200,15 @@ const ShipmentDetails = () => {
                 <p className="text-xs text-muted-foreground">From</p>
 
                 <p className="font-semibold">{parcel.originCity}</p>
+
+                <p className="mt-1 text-sm text-muted-foreground">Nigeria</p>
               </div>
             </div>
           </div>
 
+          {/* Destination */}
           <div className="rounded-xl border bg-background p-6 shadow-sm">
-            <div className="flex items-center gap-3">
+            <div className="flex items-start gap-3">
               <div className="rounded-lg bg-blue-100 p-3">
                 <MapPin className="h-5 w-5 text-blue-600" />
               </div>
@@ -177,6 +217,12 @@ const ShipmentDetails = () => {
                 <p className="text-xs text-muted-foreground">To</p>
 
                 <p className="font-semibold">{parcel.destinationCity}</p>
+
+                {parcel.destinationCountry && (
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {parcel.destinationCountry}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -186,15 +232,26 @@ const ShipmentDetails = () => {
         <div className="mt-6 rounded-xl border bg-background p-6 shadow-sm">
           <h2 className="text-lg font-semibold">Shipment Information</h2>
 
-          <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+            {/* Shipment Type */}
             <div>
-              <p className="text-xs text-muted-foreground">Category</p>
+              <p className="text-xs text-muted-foreground">Shipment Type</p>
 
-              <p className="mt-1 font-medium capitalize">
-                {parcel.parcelCategory}
+              <p className="mt-1 font-medium">
+                {formatLabel(parcel.shipmentType)}
               </p>
             </div>
 
+            {/* Category */}
+            <div>
+              <p className="text-xs text-muted-foreground">Category</p>
+
+              <p className="mt-1 font-medium">
+                {formatLabel(parcel.parcelCategory)}
+              </p>
+            </div>
+
+            {/* Weight */}
             <div>
               <p className="text-xs text-muted-foreground">Weight</p>
 
@@ -204,19 +261,21 @@ const ShipmentDetails = () => {
               </p>
             </div>
 
+            {/* Delivery Type */}
             <div>
               <p className="text-xs text-muted-foreground">Delivery Type</p>
 
-              <p className="mt-1 font-medium capitalize">
-                {parcel.deliveryType}
+              <p className="mt-1 font-medium">
+                {formatLabel(parcel.deliveryType)}
               </p>
             </div>
 
+            {/* Price */}
             <div>
               <p className="text-xs text-muted-foreground">Price</p>
 
               <p className="mt-1 font-semibold">
-                ₦{Number(parcel.price || 0).toLocaleString()}
+                ₦{Number(parcel.price || 0).toLocaleString("en-NG")}
               </p>
             </div>
           </div>
@@ -224,6 +283,7 @@ const ShipmentDetails = () => {
 
         {/* Sender / Receiver */}
         <div className="mt-6 grid gap-6 md:grid-cols-2">
+          {/* Sender */}
           <div className="rounded-xl border bg-background p-6 shadow-sm">
             <div className="flex items-center gap-3">
               <User className="h-5 w-5 text-accent" />
@@ -239,6 +299,7 @@ const ShipmentDetails = () => {
 
               <p className="flex gap-2">
                 <Phone className="h-4 w-4 text-muted-foreground" />
+
                 {parcel.senderPhone}
               </p>
 
@@ -249,6 +310,7 @@ const ShipmentDetails = () => {
             </div>
           </div>
 
+          {/* Receiver */}
           <div className="rounded-xl border bg-background p-6 shadow-sm">
             <div className="flex items-center gap-3">
               <User className="h-5 w-5 text-blue-600" />
@@ -264,6 +326,7 @@ const ShipmentDetails = () => {
 
               <p className="flex gap-2">
                 <Phone className="h-4 w-4 text-muted-foreground" />
+
                 {parcel.receiverPhone}
               </p>
 
@@ -280,65 +343,97 @@ const ShipmentDetails = () => {
           <div className="flex items-center gap-3">
             <Truck className="h-5 w-5 text-accent" />
 
-            <h2 className="text-lg font-semibold">Tracking Timeline</h2>
+            <div>
+              <h2 className="text-lg font-semibold">Tracking Timeline</h2>
+
+              <p className="text-sm text-muted-foreground">
+                Follow the progress of your shipment.
+              </p>
+            </div>
           </div>
 
           <div className="mt-6 space-y-6">
             {parcel.checkpoints?.length > 0 ? (
-              [...parcel.checkpoints].reverse().map((checkpoint, index) => (
-                <div
-                  key={`${checkpoint.timestamp}-${index}`}
-                  className="relative flex gap-4"
-                >
-                  <div className="flex flex-col items-center">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/10">
-                      {checkpoint.status === "delivered" ? (
-                        <CheckCircle2 className="h-5 w-5 text-green-600" />
-                      ) : (
-                        <Clock3 className="h-5 w-5 text-accent" />
+              [...parcel.checkpoints].reverse().map((checkpoint, index) => {
+                const isDelivered = checkpoint.status === "delivered";
+
+                const isPending = checkpoint.status === "pending";
+
+                return (
+                  <div
+                    key={`${checkpoint.timestamp}-${index}`}
+                    className="relative flex gap-4"
+                  >
+                    {/* Timeline icon */}
+                    <div className="flex flex-col items-center">
+                      <div
+                        className={`flex h-9 w-9 items-center justify-center rounded-full ${
+                          isDelivered
+                            ? "bg-green-100"
+                            : isPending
+                              ? "bg-yellow-100"
+                              : "bg-accent/10"
+                        }`}
+                      >
+                        {isDelivered ? (
+                          <CheckCircle2 className="h-5 w-5 text-green-600" />
+                        ) : isPending ? (
+                          <Clock3 className="h-5 w-5 text-yellow-600" />
+                        ) : (
+                          <Clock3 className="h-5 w-5 text-accent" />
+                        )}
+                      </div>
+
+                      {index !== parcel.checkpoints.length - 1 && (
+                        <div className="mt-2 h-full w-px bg-border" />
                       )}
                     </div>
 
-                    {index !== parcel.checkpoints.length - 1 && (
-                      <div className="mt-2 h-full w-px bg-border" />
-                    )}
-                  </div>
+                    {/* Timeline information */}
+                    <div className="pb-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-semibold">{checkpoint.title}</h3>
 
-                  <div className="pb-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-semibold">{checkpoint.title}</h3>
+                        <span
+                          className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusClasses(
+                            checkpoint.status,
+                          )}`}
+                        >
+                          {formatStatus(checkpoint.status)}
+                        </span>
+                      </div>
 
-                      <span
-                        className={`rounded-full px-2 py-1 text-xs ${getStatusClasses(
-                          checkpoint.status,
-                        )}`}
-                      >
-                        {formatStatus(checkpoint.status)}
-                      </span>
+                      <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5 shrink-0" />
+
+                        <span>
+                          {checkpoint.location || "Location unavailable"}
+                        </span>
+                      </div>
+
+                      {checkpoint.description && (
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          {checkpoint.description}
+                        </p>
+                      )}
+
+                      {checkpoint.timestamp && (
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          {formatDate(checkpoint.timestamp)}
+                        </p>
+                      )}
                     </div>
-
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {checkpoint.location}
-                    </p>
-
-                    {checkpoint.description && (
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        {checkpoint.description}
-                      </p>
-                    )}
-
-                    {checkpoint.timestamp && (
-                      <p className="mt-2 text-xs text-muted-foreground">
-                        {new Date(checkpoint.timestamp).toLocaleString()}
-                      </p>
-                    )}
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
-              <p className="text-sm text-muted-foreground">
-                No tracking updates available yet.
-              </p>
+              <div className="rounded-lg border border-dashed px-5 py-8 text-center">
+                <Clock3 className="mx-auto h-6 w-6 text-muted-foreground" />
+
+                <p className="mt-2 text-sm text-muted-foreground">
+                  No tracking updates available yet.
+                </p>
+              </div>
             )}
           </div>
         </div>

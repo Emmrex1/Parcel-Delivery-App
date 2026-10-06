@@ -56,7 +56,7 @@ const Dashboard = () => {
   const formatStatus = (status) => {
     switch (status) {
       case "pending":
-        return "Pending";
+        return "pending";
 
       case "arrived":
         return "Arrived";
